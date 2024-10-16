@@ -47,7 +47,7 @@ module tt_um_koggestone_adder (
   assign gen2_l2 = gen2_l1 | (pro2_l1 & gen[0]);
   assign gen3_l2 = gen3_l1 | (pro3_l1 & gen1_l1);
   
-// Output
+  // Output
   wire[3:0] carry, sum;
   wire carry_out;
   assign carry[0] = 0;
