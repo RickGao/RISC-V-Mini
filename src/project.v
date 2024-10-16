@@ -5,7 +5,7 @@
 
 `default_nettype none
 
-module tt_um_kogge_stone_adder (
+module tt_um_koggestone_adder (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
@@ -39,8 +39,8 @@ module tt_um_kogge_stone_adder (
   assign gen1_l1 = gen[1] | (pro[1] & gen[0]);
   assign gen2_l1 = gen[2] | (pro[2] & gen[1]);
   assign gen3_l1 = gen[3] | (pro[3] & gen[2]);
-  assign pro2_l1 pro[2] & pro[1];
-  assign pro3_l1 pro[3] & pro[2];
+  assign pro2_l1 = pro[2] & pro[1];
+  assign pro3_l1 = pro[3] & pro[2];
 
   // Layer 2   i - 2
   wire gen2_l2, gen3_l2;
@@ -50,14 +50,14 @@ module tt_um_kogge_stone_adder (
   // Output
   wire carry[3:0], carry_out;
   assign carry[0] = 0;
-  assign carry[1] = g[0];
+  assign carry[1] = gen[0];
   assign carry[2] = gen1_l1;
   assign carry[3] = gen2_l2;
   assign carry_out = gen3_l2; 
 
-  assign uo_out[3:0] = carry ^ pro;
+  assign uo_out[3:0] = pro ^ carry;
   assign uo_out[4] = carry_out;
-  
+
   assign uo_out[7:5] = 3'b000;
   assign uio_out = 8'b00000000;
   assign uio_oe = 8'b00000000;
