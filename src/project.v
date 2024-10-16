@@ -21,6 +21,8 @@ module tt_um_koggestone_adder (
 
 
   // All output pins must be assigned. If not used, assign to 0.
+  assign uio_out = 8'b00000000;
+  assign uio_oe = 8'b00000000;
 
   wire[3:0] a, b;
   assign a = ui_in[3:0];
