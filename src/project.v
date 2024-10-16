@@ -44,7 +44,7 @@ module tt_um_koggestone_adder (
 
   // Layer 2   i - 2
   wire gen2_l2, gen3_l2;
-  assign gen2_l2 = gen2_l1 | (pro2_l1 & g[0]);
+  assign gen2_l2 = gen2_l1 | (pro2_l1 & gen[0]);
   assign gen3_l2 = gen3_l1 | (pro3_l1 & gen1_l1);
   
   // Output
