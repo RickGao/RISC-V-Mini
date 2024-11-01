@@ -61,12 +61,12 @@ module alu (
         AND  = 4'b0000,
         OR   = 4'b0001,
         ADD  = 4'b0010,
-        SUB  = 4'b0110,
-        XOR  = 4'b0100,
-        SLL  = 4'b0011,  // Shift Left Logical
+        SUB  = 4'b0011,
+        XOR  = 4'b1001,
+        SLL  = 4'b0100,  // Shift Left Logical
         SRL  = 4'b0101,  // Shift Right Logical
-        SRA  = 4'b0111,  // Shift Right Arithmatic
-        SLT  = 4'b1000;  // Set Less Than Signed
+        SRA  = 4'b0110,  // Shift Right Arithmatic
+        SLT  = 4'b0111;  // Set Less Than Signed
 
     // Calculate sum and difference
     wire [`WIDTH:0] sum;
@@ -90,7 +90,7 @@ module alu (
                     (control == ADD) ? sum[`WIDTH-1:0] :
                     (control == SUB) ? dif[`WIDTH-1:0] :
                     (control == XOR) ? (a ^ b) :
-                     (control == SLL) ? (a << shift) :
+                    (control == SLL) ? (a << shift) :
                     (control == SRL) ? (a >> shift) :
                     (control == SRA) ? (right_shifted | sign_extend) :
                     // (control == SRA) ? ($signed(a) >>> b[$clog2(`WIDTH)-1:0]): // Not working
