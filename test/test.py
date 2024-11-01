@@ -124,7 +124,7 @@ async def s_type(dut, rs1, expected_output):
     # Set inputs and wait
     dut.ui_in.value = (rs1_address << 5) | opcode
     dut.uio_in.value = 0b00000000
-    await Timer(1, units="us")
+    await Timer(5, units="us")
 
     # Output result
     dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
