@@ -217,7 +217,7 @@ async def test_project(dut):
     register_tracker.print_registers()
 
     await s_type(dut, "x0", 0)  # Example for S-Type Store
-    await s_type(dut, "x0", 10)
+    await l_type(dut, "x0", 10)
     await s_type(dut, "x0", 0)
     await l_type(dut, "x2", 7,0)
     register_tracker.update_register("x2", 7)
@@ -225,7 +225,7 @@ async def test_project(dut):
     register_tracker.update_register("x3", 3)
     await s_type(dut, "x3", 3)
     await s_type(dut, "x2", 7)
-    
+
 
 
     # await r_type(dut, "ADD", "x3", "x1", "x2", expected_output=0b00000000)  # Example for R-Type ADD
