@@ -216,17 +216,25 @@ async def test_project(dut):
     dut._log.info("Testing various instructions")
     register_tracker.print_registers()
 
+    # Test Load and Store
     await s_type(dut, "x0", 0)  # Example for S-Type Store
     await l_type(dut, "x0", 10)
     await s_type(dut, "x0", 0)
-    await l_type(dut, "x2", 7,0)
-    register_tracker.update_register("x2", 7)
-    await l_type(dut, "x3", 3,0)
+    await l_type(dut, "x2", 6)
+    register_tracker.update_register("x2", 4)
+    await l_type(dut, "x3", 3)
     register_tracker.update_register("x3", 3)
-    await s_type(dut, "x3", 3)
-    await s_type(dut, "x2", 7)
+    await s_type(dut, "x3", register_tracker.get_register("x3"))
+    await s_type(dut, "x2", register_tracker.get_register("x2"))
 
-
+    # Test R type
+    await r_type(dut, "AND","x4", "x2","x3")
+    register_tracker.update_register("x4",register_tracker.get_register("x2") & register_tracker.get_register("x3"))
+    await s_type(dut, "x4", register_tracker.get_register("x4"))
+    await r_type(dut, "OR","x5","x2","x3")
+    register_tracker.update_register("x5",register_tracker.get_register("x2") & register_tracker.get_register("x3"))
+    await s_type(dut, "x5", register_tracker.get_register("x5"))
+    
 
     # await r_type(dut, "ADD", "x3", "x1", "x2", expected_output=0b00000000)  # Example for R-Type ADD
     # await i_type(dut, "ADDI", "x3", "x1", imm=0b00001, expected_output=0b00000101)  # Example for I-Type ADDI
