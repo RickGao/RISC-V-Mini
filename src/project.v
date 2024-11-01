@@ -51,7 +51,7 @@ module tt_um_riscv_mini (
     wire [`WIDTH-1:0] reg_data1;   // Data from register 1
     wire [`WIDTH-1:0] reg_data2;   // Data from register 2
     wire [`WIDTH-1:0] alu_result;  // ALU output result
-    wire alu_zero, alu_carry;      // ALU flag signals
+    wire alu_zero;                 // ALU flag signals
 
     // Instruction type detection
     wire is_i_type = (opcode == 2'b01);
@@ -102,8 +102,8 @@ module tt_um_riscv_mini (
 
     // Generate output result based on instruction type
     assign result = (opcode == 2'b11 && funct3 == 3'b000) ? reg_data1 : 
-                    (opcode == 2'b11 && funct3 == 3'b011 && funct2[0] == 1'b0) ? alu_zero :
-                    (opcode == 2'b11 && funct3 == 3'b011 && funct2[0] == 1'b1) ? ~alu_zero :
+                    (opcode == 2'b11 && funct3 == 3'b011 && funct2[0] == 1'b0) ? {7'b0000000, alu_zero} :
+                    (opcode == 2'b11 && funct3 == 3'b011 && funct2[0] == 1'b1) ? {7'b0000000, ~alu_zero} :
                     (opcode == 2'b11 && funct3 == 3'b111 && funct2[0] == 1'b0) ? alu_result :
                     8'b00000000;
 
