@@ -1,9 +1,11 @@
 /*
  * Copyright (c) 2024 Your Name
- * SPDX-License-Identifier: Apache-2.0
  */
 
 `default_nettype none
+
+`include "alu.v"
+`include "register.v"
 
 
 // Define Width with Macro
@@ -31,8 +33,8 @@ module tt_um_riscv_mini (
 
 
     // Input and Output of CPU
-    wire [15:0] instruction,       // 16-bit instruction input
-    wire [7:0] result              // Result of the executed instruction
+    wire [15:0] instruction;       // 16-bit instruction input
+    wire [7:0]  result;            // Result of the executed instruction
 
 
     // Connect pin to instruction
@@ -43,43 +45,37 @@ module tt_um_riscv_mini (
     // Signal declarations
     wire [1:0] opcode;             // Opcode field of the instruction
     wire [2:0] rd, rs1, rs2;       // Destination and source registers
-    wire [6:0] imm;                // Immediate value (for I-type instructions)
-    wire [3:0] funct3;             // Function code for operation types
+    wire [2:0] funct3;             // Function code for operation types
+    wire [1:0] funct2;             // Function code for operation types
+    wire [7:0] imm;                // Immediate value (for I-type instructions)
     wire [`WIDTH-1:0] reg_data1;   // Data from register 1
     wire [`WIDTH-1:0] reg_data2;   // Data from register 2
     wire [`WIDTH-1:0] alu_result;  // ALU output result
     wire alu_zero, alu_carry;      // ALU flag signals
 
+    // Instruction type detection
+    wire is_i_type = (opcode == 2'b01);
+    wire is_l_type = (opcode == 2'b10);
+
     // Parse fields from the instruction
-    assign opcode = instruction[1:0];
-    assign rd     = instruction[10:8];
-    assign rs1    = instruction[7:5];
-    assign rs2    = instruction[4:2];
-    assign imm    = instruction[10:4];
-    assign funct3 = instruction[13:11];
+    assign opcode[1:0] = instruction[1:0];
+    assign rs2         = instruction[10:8];
+    assign rs1         = instruction[7:5];
+    assign rd          = instruction[4:2];
+    assign funct3      = instruction[15:13];
+    assign funct2      = instruction[12:11];
+    assign imm[4:0]    = instruction[12:8];
+    assign imm[7:5]    = is_l_type ? instruction[15:13] : {3{instruction[12]}};
 
     // Write enable signal based on opcode
     wire we;                       
-    assign we = (opcode == 2'b00) || (opcode == 2'b01);  // Enabled for R-type and I-type instructions
+    assign we = (opcode[1] == 1'b0);  // Enabled for R-type and I-type instructions
 
-    // Instruction type detection
-    wire is_r_type = (opcode == 2'b00);
-    wire is_i_type = (opcode == 2'b01);
-    wire is_l_type = (opcode == 2'b10);
-    wire is_s_type = (opcode == 2'b11 && funct3 == 3'b001);
-    wire is_b_type = (opcode == 2'b11 && (funct3 == 3'b010 || funct3 == 3'b011));
 
     // ALU control signal based on funct3
     wire [3:0] alu_control;
-    assign alu_control = (funct3 == 3'b000) ? 4'b0000 : // AND
-                         (funct3 == 3'b001) ? 4'b0001 : // OR
-                         (funct3 == 3'b010) ? 4'b0010 : // ADD
-                         (funct3 == 3'b011) ? 4'b0110 : // SUB
-                         (funct3 == 3'b100) ? 4'b0100 : // XOR
-                         (funct3 == 3'b101) ? 4'b0011 : // SLL
-                         (funct3 == 3'b110) ? 4'b0101 : // SRL
-                         (funct3 == 3'b111) ? 4'b0111 : // SRA
-                         4'b0000;                       // Default to AND
+    assign alu_control = {funct2[0], funct3[2:0]};
+
 
     // Instantiate the register file
     register reg_file (
@@ -89,26 +85,32 @@ module tt_um_riscv_mini (
         .read_reg2(rs2),
         .write_reg(rd),
         .we(we),
-        .write_data(is_i_type ? imm[`WIDTH-1:0] : alu_result),
+        .write_data(is_l_type ? imm[7:0] : alu_result),
         .read_data1(reg_data1),
         .read_data2(reg_data2)
     );
 
     // Instantiate the ALU
-    alu alu_inst (
+    alu alu_block (
         .control(alu_control),
         .a(reg_data1),
-        .b(is_i_type ? imm[`WIDTH-1:0] : reg_data2),
+        .b(is_i_type ? imm[7:0] : reg_data2),
         .out(alu_result),
         .carry(alu_carry),
         .zero(alu_zero)
     );
 
     // Generate output result based on instruction type
-    assign result = is_l_type ? reg_data1 :  // Load operation outputs register data
-                    is_s_type ? reg_data2 :  // Store operation outputs register data
-                    is_b_type ? {7'b0, (alu_zero || alu_carry)} : // Branch (BEQ/BLT) based on flags
-                    alu_result; // Default output is ALU result
+    assign result = (opcode == 2'b11 && funct3 == 3'b000) ? reg_data1 : 
+                    (opcode == 2'b11 && funct3 == 3'b011 && funct2[0] == 1'b0) ? alu_zero :
+                    (opcode == 2'b11 && funct3 == 3'b011 && funct2[0] == 1'b1) ? ~alu_zero :
+                    (opcode == 2'b11 && funct3 == 3'b111 && funct2[0] == 1'b0) ? alu_result :
+                    8'b00000000;
+
+    // assign result = is_l_type ? reg_data1 :  // Load operation outputs register data
+    //                 is_s_type ? reg_data2 :  // Store operation outputs register data
+    //                 is_b_type ? {7'b0, (alu_zero || alu_carry)} : // Branch (BEQ/BLT) based on flags
+    //                 alu_result; // Default output is ALU result
 
     // Connect output
     assign uo_out[7:0] = result[7:0];
