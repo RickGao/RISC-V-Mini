@@ -103,7 +103,7 @@ async def l_type(dut, rd, imm, expected_output=0):
     # Set inputs and wait
     instruction = (imm << 8) | (rd_address << 2) | opcode
     dut.ui_in.value = instruction & 0xFF
-    dut.uio_in.value = (instruction >> 8) & 0xFF
+    dut.uio_in.value = imm
     await Timer(1, units="us")
 
     # Output result
