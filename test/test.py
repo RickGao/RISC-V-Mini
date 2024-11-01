@@ -44,7 +44,7 @@ B_TYPE_FUNCT3 = {
 }
 
 # R-Type instruction function
-async def r_type(dut, operation, rd, rs1, rs2, expected_output):
+async def r_type(dut, operation, rd, rs1, rs2, expected_output=0):
     funct3 = R_TYPE_FUNCT3[operation]
     funct2 = 0b01 if operation == "XOR" else 0b00  # Set funct2 for XOR
     rd_address = REGISTER_MAP[rd]
@@ -53,7 +53,7 @@ async def r_type(dut, operation, rd, rs1, rs2, expected_output):
     opcode = 0b00
 
     # Log details
-    dut._log.info(f"Executing R-Type Instruction: {operation}, {rd}, {rs1}, {rs2}")
+    dut._log.info(f"Executing R-Type Instruction: {operation} {rd}, {rs1}, {rs2}")
     dut._log.info(f"funct3: {funct3}, funct2: {funct2}, rs2: {rs2_address}, rs1: {rs1_address}, rd: {rd_address}, Opcode: {opcode}")
 
     # Set inputs and wait
@@ -69,15 +69,15 @@ async def r_type(dut, operation, rd, rs1, rs2, expected_output):
     await ClockCycles(dut.clk, 1)
 
 # I-Type instruction function
-async def i_type(dut, operation, rd, rs1, imm, expected_output):
+async def i_type(dut, operation, rd, rs1, imm, expected_output=0):
     funct3 = I_TYPE_FUNCT3[operation]
     rd_address = REGISTER_MAP[rd]
     rs1_address = REGISTER_MAP[rs1]
     opcode = 0b01
 
     # Log details
-    dut._log.info(f"Executing I-Type Instruction: {operation}, {rd}, {rs1}, {imm}")
-    dut._log.info(f"Opcode: {opcode}, funct3: {funct3}, rs1: {rs1_address}, rd: {rd_address}, Immediate: {imm}")
+    dut._log.info(f"Executing I-Type Instruction: {operation} {rd}, {rs1}, {imm}")
+    dut._log.info(f"funct3: {funct3}, Immediate: {imm}, rs1: {rs1_address}, rd: {rd_address}, Opcode: {opcode}")
 
     # Set inputs and wait
     instruction = (funct3 << 13) | (imm << 8) | (rs1_address << 5) | (rd_address << 2) | opcode
@@ -92,13 +92,13 @@ async def i_type(dut, operation, rd, rs1, imm, expected_output):
     await ClockCycles(dut.clk, 1)
 
 # L-Type instruction function
-async def l_type(dut, rd, imm, expected_output):
+async def l_type(dut, rd, imm, expected_output=0):
     rd_address = REGISTER_MAP[rd]
     opcode = 0b10
 
     # Log details
-    dut._log.info(f"Executing L-Type Instruction: LOAD, {rd}, {imm}")
-    dut._log.info(f"Opcode: {opcode}, rd: {rd_address}, Immediate: {imm}")
+    dut._log.info(f"Executing L-Type Instruction: LOAD {rd}, {imm}")
+    dut._log.info(f"Immediate: {imm}, rd: {rd_address}, Opcode: {opcode}")
 
     # Set inputs and wait
     instruction = (imm << 8) | (rd_address << 2) | opcode
@@ -118,8 +118,8 @@ async def s_type(dut, rs1, expected_output):
     opcode = 0b11
 
     # Log details
-    dut._log.info(f"Executing S-Type Instruction: STORE")
-    dut._log.info(f"Opcode: {opcode}, rs1: {rs1_address}")
+    dut._log.info(f"Executing S-Type Instruction: STORE {rs1}")
+    dut._log.info(f"rs1: {rs1_address}, Opcode: {opcode}")
 
     # Set inputs and wait
     dut.ui_in.value = (rs1_address << 5) | opcode
@@ -141,7 +141,7 @@ async def b_type(dut, operation, rs1, rs2, expected_output):
     opcode = 0b11
 
     # Log details
-    dut._log.info(f"Executing B-Type Instruction: {operation}, {rs1}, {rs2}")
+    dut._log.info(f"Executing B-Type Instruction: {operation} {rs1}, {rs2}")
     dut._log.info(f"Opcode: {opcode}, funct3: {funct3}, funct2: {funct2}, rs1: {rs1}, rs2: {rs2}")
 
     # Set inputs and wait
@@ -177,10 +177,11 @@ async def test_project(dut):
     dut._log.info("Testing various instructions")
 
     # Example test cases for each instruction type
-    await s_type(dut, "x0", expected_output=0)  # Example for S-Type Store
-    await l_type(dut, "x2", 7)
-    await l_type(dut, "x3", 3)
-    await s_type(dut, "x2", expected_output=7)
+    await s_type(dut, "x0", 0)  # Example for S-Type Store
+    await l_type(dut, "x2", 7,0)
+    await l_type(dut, "x3", 3,0)
+    await s_type(dut, "x2", 7)
+
     # await r_type(dut, "ADD", "x3", "x1", "x2", expected_output=0b00000000)  # Example for R-Type ADD
     # await i_type(dut, "ADDI", "x3", "x1", imm=0b00001, expected_output=0b00000101)  # Example for I-Type ADDI
     # await l_type(dut, "x3", imm=0b11111111, expected_output=0b11111111)  # Example for L-Type Load
