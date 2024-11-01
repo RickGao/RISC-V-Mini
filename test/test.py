@@ -1,4 +1,5 @@
 # By RickGao
+from binascii import Error
 
 import cocotb
 from cocotb.clock import Clock
@@ -43,6 +44,44 @@ B_TYPE_FUNCT3 = {
     "BLT":  0b111,
 }
 
+
+class RegisterFileTracker:
+    def __init__(self):
+        # Initialize 8 registers with 8-bit signed integers, all set to 0
+        self.registers = [0] * 8
+
+    def update_register(self, register_name, value):
+        """
+        Update the value of a register.
+        If the value exceeds the 8-bit signed integer range, it will be truncated.
+        """
+        register_index = REGISTER_MAP[register_name]
+        # Ensure value is within 8-bit signed integer range
+        if value > 127 or value < - 128:
+            print(f"Value = {value}, out of range")
+        self.registers[register_index] = value
+
+    def get_register(self, register_name):
+        """
+        Retrieve the current value of a specific register.
+        """
+        register_index = REGISTER_MAP[register_name]
+        return self.registers[register_index]
+
+    def print_registers(self):
+        """
+        Print the current state of all registers.
+        """
+        print("Current Register Values:")
+        for i in range(len(self.registers)):
+            print(f"x{i}: {self.registers[i]}")
+        print()
+
+
+register_tracker = RegisterFileTracker()
+
+
+
 # R-Type instruction function
 async def r_type(dut, operation, rd, rs1, rs2, expected_output=0):
     funct3 = R_TYPE_FUNCT3[operation]
@@ -60,10 +99,10 @@ async def r_type(dut, operation, rd, rs1, rs2, expected_output=0):
     instruction = (funct3 << 13) | (funct2 << 11) | (rs2_address << 8) | (rs1_address << 5) | (rd_address << 2) | opcode
     dut.ui_in.value = instruction & 0xFF
     dut.uio_in.value = (instruction >> 8) & 0xFF
-    await Timer(10, units="us")
+    await Timer(1, units="us")
 
     # Output result
-    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
+    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}\n")
     assert dut.uo_out.value == expected_output, f"Expected {expected_output}, got {dut.uo_out.value}"
 
     await ClockCycles(dut.clk, 1)
@@ -83,10 +122,10 @@ async def i_type(dut, operation, rd, rs1, imm, expected_output=0):
     instruction = (funct3 << 13) | (imm << 8) | (rs1_address << 5) | (rd_address << 2) | opcode
     dut.ui_in.value = instruction & 0xFF
     dut.uio_in.value = (instruction >> 8) & 0xFF
-    await Timer(10, units="us")
+    await Timer(1, units="us")
 
     # Output result
-    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
+    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}\n")
     assert dut.uo_out.value == expected_output, f"Expected {expected_output}, got {dut.uo_out.value}"
 
     await ClockCycles(dut.clk, 1)
@@ -104,10 +143,10 @@ async def l_type(dut, rd, imm, expected_output=0):
     instruction = (imm << 8) | (rd_address << 2) | opcode
     dut.ui_in.value = instruction & 0xFF
     dut.uio_in.value = imm
-    await ClockCycles(dut.clk, 1)
+    await Timer(1, units="us")
 
     # Output result
-    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
+    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}\n")
     assert dut.uo_out.value == expected_output, f"Expected {expected_output}, got {dut.uo_out.value}"
 
     await ClockCycles(dut.clk, 1)
@@ -124,10 +163,10 @@ async def s_type(dut, rs1, expected_output):
     # Set inputs and wait
     dut.ui_in.value = (rs1_address << 5) | opcode
     dut.uio_in.value = 0b00000000
-    await Timer(10, units="us")
+    await Timer(1, units="us")
 
     # Output result
-    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
+    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}\n")
     assert dut.uo_out.value == expected_output, f"Expected {expected_output}, got {dut.uo_out.value}"
 
     await ClockCycles(dut.clk, 1)
@@ -148,10 +187,10 @@ async def b_type(dut, operation, rs1, rs2, expected_output):
     instruction = (funct3 << 13) | (funct2 << 11) | (rs2_address << 8) | (rs1_address << 5) | opcode
     dut.ui_in.value = instruction & 0xFF
     dut.uio_in.value = (instruction >> 8) & 0xFF
-    await Timer(10, units="us")
+    await Timer(1, units="us")
 
     # Output result
-    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
+    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}\n")
     assert dut.uo_out.value == expected_output, f"Expected {expected_output}, got {dut.uo_out.value}"
 
     await ClockCycles(dut.clk, 1)
@@ -160,8 +199,8 @@ async def b_type(dut, operation, rs1, rs2, expected_output):
 async def test_project(dut):
     dut._log.info("Start")
 
-    # Set the clock period to 100 us (10 KHz)
-    clock = Clock(dut.clk, 100, units="us")
+    # Set the clock period to 10 us (100 KHz)
+    clock = Clock(dut.clk, 10, units="us")
     cocotb.start_soon(clock.start())
 
     # Reset
@@ -175,12 +214,19 @@ async def test_project(dut):
     await ClockCycles(dut.clk, 10)
 
     dut._log.info("Testing various instructions")
+    register_tracker.print_registers()
 
-    # Example test cases for each instruction type
     await s_type(dut, "x0", 0)  # Example for S-Type Store
+    await s_type(dut, "x0", 10)
+    await s_type(dut, "x0", 0)
     await l_type(dut, "x2", 7,0)
+    register_tracker.update_register("x2", 7)
     await l_type(dut, "x3", 3,0)
+    register_tracker.update_register("x3", 3)
     await s_type(dut, "x3", 3)
+    await s_type(dut, "x2", 7)
+    
+
 
     # await r_type(dut, "ADD", "x3", "x1", "x2", expected_output=0b00000000)  # Example for R-Type ADD
     # await i_type(dut, "ADDI", "x3", "x1", imm=0b00001, expected_output=0b00000101)  # Example for I-Type ADDI
