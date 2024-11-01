@@ -4,6 +4,7 @@
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles
+from cocotb.triggers import Timer
 
 
 @cocotb.test()
@@ -30,7 +31,8 @@ async def test_project(dut):
     dut.uio_in.value = 0b00000000
 
     # Wait for one clock cycle to see the output values
-    await ClockCycles(dut.clk, 1)
+    # await ClockCycles(dut.clk, 1)
+    await Timer(1, units="us")
 
     # The following assersion is just an example of how to check the output values.
     # Change it to match the actual expected output of your module:
