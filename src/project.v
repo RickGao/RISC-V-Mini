@@ -70,7 +70,7 @@ module tt_um_riscv_mini (
 
     // Write enable signal based on opcode
     wire we;                       
-    assign we = (opcode[1] == 1'b0);  // Enabled for R-type and I-type instructions
+    assign we = (opcode != 2'b11);  // Enabled for R-type and I-type instructions
 
 
     // ALU control signal based on funct3
