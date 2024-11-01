@@ -1,11 +1,160 @@
-# SPDX-FileCopyrightText: © 2024 Tiny Tapeout
-# SPDX-License-Identifier: Apache-2.0
+# By RickGao
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles
-from cocotb.triggers import Timer
+from cocotb.triggers import ClockCycles, Timer
 
+
+# Operation codes for R-Type instructions
+R_TYPE_FUNCT3 = {
+    "AND": 0b000,
+    "OR":  0b001,
+    "ADD": 0b010,
+    "SUB": 0b011,
+    "XOR": 0b001,  # With funct2 for XOR as 0b01
+    "SLT": 0b111
+}
+
+# Operation codes for I-Type instructions
+I_TYPE_FUNCT3 = {
+    "SLL":  0b100,
+    "SRL":  0b101,
+    "SRA":  0b110,
+    "ADDI": 0b010,
+    "SUBI": 0b011
+}
+
+# Helper function to parse register names
+REGISTER_MAP = {
+    "x0": 0b000,
+    "x1": 0b001,
+    "x2": 0b010,
+    "x3": 0b011,
+    "x4": 0b100,
+    "x5": 0b101,
+    "x6": 0b110,
+    "x7": 0b111
+}
+
+# Operation codes for B-Type instructions
+B_TYPE_FUNCT3 = {
+    "BEQ":  0b011,
+    "BNE":  0b011,
+    "BLT":  0b111,
+}
+
+# R-Type instruction function
+async def r_type(dut, operation, rd, rs1, rs2, expected_output):
+    funct3 = R_TYPE_FUNCT3[operation]
+    funct2 = 0b01 if operation == "XOR" else 0b00  # Set funct2 for XOR
+    rd_address = REGISTER_MAP[rd]
+    rs1_address = REGISTER_MAP[rs1]
+    rs2_address = REGISTER_MAP[rs2]
+    opcode = 0b00
+
+    # Log details
+    dut._log.info(f"Executing R-Type Instruction: {operation}, {rd}, {rs1}, {rs2}")
+    dut._log.info(f"funct3: {funct3}, funct2: {funct2}, rs2: {rs2_address}, rs1: {rs1_address}, rd: {rd_address}, Opcode: {opcode}")
+
+    # Set inputs and wait
+    instruction = (funct3 << 13) | (funct2 << 11) | (rs2_address << 8) | (rs1_address << 5) | (rd_address << 2) | opcode
+    dut.ui_in.value = instruction & 0xFF
+    dut.uio_in.value = (instruction >> 8) & 0xFF
+    await Timer(1, units="us")
+
+    # Output result
+    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
+    assert dut.uo_out.value == expected_output, f"Expected {expected_output}, got {dut.uo_out.value}"
+
+    await ClockCycles(dut.clk, 1)
+
+# I-Type instruction function
+async def i_type(dut, operation, rd, rs1, imm, expected_output):
+    funct3 = I_TYPE_FUNCT3[operation]
+    rd_address = REGISTER_MAP[rd]
+    rs1_address = REGISTER_MAP[rs1]
+    opcode = 0b01
+
+    # Log details
+    dut._log.info(f"Executing I-Type Instruction: {operation}, {rd}, {rs1}, {imm}")
+    dut._log.info(f"Opcode: {opcode}, funct3: {funct3}, rs1: {rs1_address}, rd: {rd_address}, Immediate: {imm}")
+
+    # Set inputs and wait
+    instruction = (funct3 << 13) | (imm << 8) | (rs1_address << 5) | (rd_address << 2) | opcode
+    dut.ui_in.value = instruction & 0xFF
+    dut.uio_in.value = (instruction >> 8) & 0xFF
+    await Timer(1, units="us")
+
+    # Output result
+    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
+    assert dut.uo_out.value == expected_output, f"Expected {expected_output}, got {dut.uo_out.value}"
+
+    await ClockCycles(dut.clk, 1)
+
+# L-Type instruction function
+async def l_type(dut, rd, imm, expected_output):
+    rd_address = REGISTER_MAP[rd]
+    opcode = 0b10
+
+    # Log details
+    dut._log.info(f"Executing L-Type Instruction: LOAD, {rd}, {imm}")
+    dut._log.info(f"Opcode: {opcode}, rd: {rd_address}, Immediate: {imm}")
+
+    # Set inputs and wait
+    instruction = (imm << 8) | (rd_address << 2) | opcode
+    dut.ui_in.value = instruction & 0xFF
+    dut.uio_in.value = (instruction >> 8) & 0xFF
+    await Timer(1, units="us")
+
+    # Output result
+    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
+    assert dut.uo_out.value == expected_output, f"Expected {expected_output}, got {dut.uo_out.value}"
+
+    await ClockCycles(dut.clk, 1)
+
+# S-Type instruction function
+async def s_type(dut, rs1, expected_output):
+    rs1_address = REGISTER_MAP[rs1]
+    opcode = 0b11
+
+    # Log details
+    dut._log.info(f"Executing S-Type Instruction: STORE")
+    dut._log.info(f"Opcode: {opcode}, rs1: {rs1_address}")
+
+    # Set inputs and wait
+    dut.ui_in.value = (rs1_address << 5) | opcode
+    dut.uio_in.value = 0b00000000
+    await Timer(1, units="us")
+
+    # Output result
+    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
+    assert dut.uo_out.value == expected_output, f"Expected {expected_output}, got {dut.uo_out.value}"
+
+    await ClockCycles(dut.clk, 1)
+
+# B-Type instruction function
+async def b_type(dut, operation, rs1, rs2, expected_output):
+    funct3 = B_TYPE_FUNCT3[operation]  # Using same funct3 mapping as R-type for simplicity
+    funct2 = 0b10 if operation == "BNE" else 0b00  # Set funct2 for BNE
+    rs1_address = REGISTER_MAP[rs1]
+    rs2_address = REGISTER_MAP[rs2]
+    opcode = 0b11
+
+    # Log details
+    dut._log.info(f"Executing B-Type Instruction: {operation}, {rs1}, {rs2}")
+    dut._log.info(f"Opcode: {opcode}, funct3: {funct3}, funct2: {funct2}, rs1: {rs1}, rs2: {rs2}")
+
+    # Set inputs and wait
+    instruction = (funct3 << 13) | (funct2 << 11) | (rs2_address << 8) | (rs1_address << 5) | opcode
+    dut.ui_in.value = instruction & 0xFF
+    dut.uio_in.value = (instruction >> 8) & 0xFF
+    await Timer(1, units="us")
+
+    # Output result
+    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
+    assert dut.uo_out.value == expected_output, f"Expected {expected_output}, got {dut.uo_out.value}"
+
+    await ClockCycles(dut.clk, 1)
 
 @cocotb.test()
 async def test_project(dut):
@@ -23,20 +172,17 @@ async def test_project(dut):
     dut.rst_n.value = 0
     await ClockCycles(dut.clk, 10)
     dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 10)
 
-    dut._log.info("Test project behavior")
+    dut._log.info("Testing various instructions")
 
-    # Set the input values you want to test
-    dut.ui_in.value  = 0b00000011
-    dut.uio_in.value = 0b00000000
-
-    # Wait for one clock cycle to see the output values
-    # await ClockCycles(dut.clk, 1)
-    await Timer(1, units="us")
-
-    # The following assersion is just an example of how to check the output values.
-    # Change it to match the actual expected output of your module:
-    assert dut.uo_out.value == 0
-
-    # Keep testing the module by changing the input values, waiting for
-    # one or more clock cycles, and asserting the expected output values.
+    # Example test cases for each instruction type
+    await s_type(dut, "x0", expected_output=0)  # Example for S-Type Store
+    await l_type(dut, "x2", 7)
+    await l_type(dut, "x3", 3)
+    await s_type(dut, "x2", expected_output=7)
+    # await r_type(dut, "ADD", "x3", "x1", "x2", expected_output=0b00000000)  # Example for R-Type ADD
+    # await i_type(dut, "ADDI", "x3", "x1", imm=0b00001, expected_output=0b00000101)  # Example for I-Type ADDI
+    # await l_type(dut, "x3", imm=0b11111111, expected_output=0b11111111)  # Example for L-Type Load
+    # await s_type(dut, "x1", expected_output=0)  # Example for S-Type Store
+    # await b_type(dut, "BEQ", "x1", "x2", expected_output=1)  # Example for B-Type BEQ

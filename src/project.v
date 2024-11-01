@@ -14,6 +14,7 @@
 `endif
 
 
+
 module tt_um_riscv_mini (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
@@ -74,7 +75,8 @@ module tt_um_riscv_mini (
 
     // ALU control signal based on funct3
     wire [3:0] alu_control;
-    assign alu_control = {funct2[0], funct3[2:0]};
+    assign alu_control[2:0] = funct3[2:0];
+    assign alu_control[3] = (opcode == 2'b01) ? 0'b0 : funct2[0];
 
 
     // Instantiate the register file
@@ -102,15 +104,11 @@ module tt_um_riscv_mini (
 
     // Generate output result based on instruction type
     assign result = (opcode == 2'b11 && funct3 == 3'b000) ? reg_data1 : 
-                    (opcode == 2'b11 && funct3 == 3'b011 && funct2[0] == 1'b0) ? {7'b0000000, alu_zero} :
-                    (opcode == 2'b11 && funct3 == 3'b011 && funct2[0] == 1'b1) ? {7'b0000000, ~alu_zero} :
-                    (opcode == 2'b11 && funct3 == 3'b111 && funct2[0] == 1'b0) ? alu_result :
+                    (opcode == 2'b11 && funct3 == 3'b011 && funct2[1] == 1'b0) ? {7'b0000000, alu_zero} :
+                    (opcode == 2'b11 && funct3 == 3'b011 && funct2[1] == 1'b1) ? {7'b0000000, ~alu_zero} :
+                    (opcode == 2'b11 && funct3 == 3'b111 && funct2[1] == 1'b0) ? alu_result :
                     8'b00000000;
 
-    // assign result = is_l_type ? reg_data1 :  // Load operation outputs register data
-    //                 is_s_type ? reg_data2 :  // Store operation outputs register data
-    //                 is_b_type ? {7'b0, (alu_zero || alu_carry)} : // Branch (BEQ/BLT) based on flags
-    //                 alu_result; // Default output is ALU result
 
     // Connect output
     assign uo_out[7:0] = result[7:0];
