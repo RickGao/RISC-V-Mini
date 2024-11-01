@@ -50,7 +50,7 @@ def to_signed_8bit(value):
     Convert an 8-bit unsigned integer to a signed integer in the range of -128 to 127.
     """
     value = int(value)
-    
+
     if value > 127:
         return value - 256
     else:
@@ -233,10 +233,11 @@ async def test_project(dut):
     dut._log.info("Testing various instructions")
     register_tracker.print_registers()
 
-    # Test Load and Store
-    await s_type(dut, "x0", 0)  # Example for S-Type Store
+    # Test x0
+    await s_type(dut, "x0", 0)
     await l_type(dut, "x0", 10)
     await s_type(dut, "x0", 0)
+    # Test Load and Store
     await l_type(dut, "x2", 6)
     register_tracker.update_register("x2", 6)
     await l_type(dut, "x3", 3)
@@ -244,16 +245,23 @@ async def test_project(dut):
     await s_type(dut, "x3", register_tracker.get_register("x3"))
     await s_type(dut, "x2", register_tracker.get_register("x2"))
 
-    # Test R type
+    # Test AND
     await r_type(dut, "AND","x4", "x2","x3")
     register_tracker.update_register("x4",register_tracker.get_register("x2") & register_tracker.get_register("x3"))
     await s_type(dut, "x4", register_tracker.get_register("x4"))
+    # Test OR
     await r_type(dut, "OR","x5","x2","x3")
     register_tracker.update_register("x5",register_tracker.get_register("x2") | register_tracker.get_register("x3"))
     await s_type(dut, "x5", register_tracker.get_register("x5"))
-    await r_type(dut, "ADD", "x6", "x2", "x3")
+    # Test ADD
+    await r_type(dut, "ADD","x6", "x2", "x3")
     register_tracker.update_register("x6",register_tracker.get_register("x2") + register_tracker.get_register("x3"))
     await s_type(dut, "x6", register_tracker.get_register("x6"))
-    await r_type(dut, "SUB","x6")
-
-
+    # Test SUB
+    await r_type(dut, "SUB","x7", "x2", "x3")
+    register_tracker.update_register("x7", register_tracker.get_register("x2") - register_tracker.get_register("x3"))
+    await s_type(dut, "x7", register_tracker.get_register("x7"))
+    # Test XOR
+    await r_type(dut, "XOR", "x4", "x2", "x3")
+    register_tracker.update_register("x4", register_tracker.get_register("x2") ^ register_tracker.get_register("x3"))
+    await s_type(dut, "x4", register_tracker.get_register("x4"))
