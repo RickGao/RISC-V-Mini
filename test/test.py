@@ -104,7 +104,7 @@ async def l_type(dut, rd, imm, expected_output=0):
     instruction = (imm << 8) | (rd_address << 2) | opcode
     dut.ui_in.value = instruction & 0xFF
     dut.uio_in.value = imm
-    await Timer(1, units="us")
+    await ClockCycles(dut.clk, 1)
 
     # Output result
     dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
