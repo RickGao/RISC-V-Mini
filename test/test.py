@@ -60,7 +60,7 @@ async def r_type(dut, operation, rd, rs1, rs2, expected_output=0):
     instruction = (funct3 << 13) | (funct2 << 11) | (rs2_address << 8) | (rs1_address << 5) | (rd_address << 2) | opcode
     dut.ui_in.value = instruction & 0xFF
     dut.uio_in.value = (instruction >> 8) & 0xFF
-    await Timer(1, units="us")
+    await Timer(10, units="us")
 
     # Output result
     dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
@@ -83,7 +83,7 @@ async def i_type(dut, operation, rd, rs1, imm, expected_output=0):
     instruction = (funct3 << 13) | (imm << 8) | (rs1_address << 5) | (rd_address << 2) | opcode
     dut.ui_in.value = instruction & 0xFF
     dut.uio_in.value = (instruction >> 8) & 0xFF
-    await Timer(1, units="us")
+    await Timer(10, units="us")
 
     # Output result
     dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
@@ -124,7 +124,7 @@ async def s_type(dut, rs1, expected_output):
     # Set inputs and wait
     dut.ui_in.value = (rs1_address << 5) | opcode
     dut.uio_in.value = 0b00000000
-    await Timer(5, units="us")
+    await Timer(10, units="us")
 
     # Output result
     dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
@@ -148,7 +148,7 @@ async def b_type(dut, operation, rs1, rs2, expected_output):
     instruction = (funct3 << 13) | (funct2 << 11) | (rs2_address << 8) | (rs1_address << 5) | opcode
     dut.ui_in.value = instruction & 0xFF
     dut.uio_in.value = (instruction >> 8) & 0xFF
-    await Timer(1, units="us")
+    await Timer(10, units="us")
 
     # Output result
     dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}")
@@ -160,8 +160,8 @@ async def b_type(dut, operation, rs1, rs2, expected_output):
 async def test_project(dut):
     dut._log.info("Start")
 
-    # Set the clock period to 10 us (100 KHz)
-    clock = Clock(dut.clk, 10, units="us")
+    # Set the clock period to 100 us (10 KHz)
+    clock = Clock(dut.clk, 100, units="us")
     cocotb.start_soon(clock.start())
 
     # Reset

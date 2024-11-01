@@ -80,7 +80,7 @@ module register(
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             // Reset all registers to 0 on reset
-            registers[0] <= 0;
+            registers[0] <= 1;
             registers[1] <= 0;
             registers[2] <= 0;
             registers[3] <= 0;
