@@ -45,6 +45,16 @@ B_TYPE_FUNCT3 = {
 }
 
 
+def to_signed_8bit(value):
+    """
+    Convert an 8-bit unsigned integer to a signed integer in the range of -128 to 127.
+    """
+    if value > 127:
+        return value - 256
+    else:
+        return value
+
+
 class RegisterFileTracker:
     def __init__(self):
         # Initialize 8 registers with 8-bit signed integers, all set to 0
@@ -165,9 +175,13 @@ async def s_type(dut, rs1, expected_output):
     dut.uio_in.value = 0b00000000
     await Timer(1, units="us")
 
-    # Output result
-    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}\n")
-    assert dut.uo_out.value == expected_output, f"Expected {expected_output}, got {dut.uo_out.value}"
+    actual_output = to_signed_8bit(dut.uo_out.value)  # Convert to signed 8-bit
+    dut._log.info(f"Expected Output: {expected_output}, Actual Output: {actual_output}\n")
+    assert actual_output == expected_output, f"Expected {expected_output}, got {actual_output}"
+
+    # # Output result
+    # dut._log.info(f"Expected Output: {expected_output}, Actual Output: {dut.uo_out.value}\n")
+    # assert dut.uo_out.value == expected_output, f"Expected {expected_output}, got {dut.uo_out.value}"
 
     await ClockCycles(dut.clk, 1)
 
@@ -194,6 +208,7 @@ async def b_type(dut, operation, rs1, rs2, expected_output):
     assert dut.uo_out.value == expected_output, f"Expected {expected_output}, got {dut.uo_out.value}"
 
     await ClockCycles(dut.clk, 1)
+
 
 @cocotb.test()
 async def test_project(dut):
@@ -232,8 +247,10 @@ async def test_project(dut):
     register_tracker.update_register("x4",register_tracker.get_register("x2") & register_tracker.get_register("x3"))
     await s_type(dut, "x4", register_tracker.get_register("x4"))
     await r_type(dut, "OR","x5","x2","x3")
-    register_tracker.update_register("x5",register_tracker.get_register("x2") & register_tracker.get_register("x3"))
+    register_tracker.update_register("x5",register_tracker.get_register("x2") | register_tracker.get_register("x3"))
     await s_type(dut, "x5", register_tracker.get_register("x5"))
+    await r_type(dut, "ADD", "x6", "x2", "x3")
+    register_tracker.update_register("x6",register_tracker.get_register("x2") + register_tracker.get_register("x3"))
 
 
     # await r_type(dut, "ADD", "x3", "x1", "x2", expected_output=0b00000000)  # Example for R-Type ADD
