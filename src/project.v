@@ -76,7 +76,7 @@ module tt_um_riscv_mini (
     // ALU control signal based on funct3
     wire [3:0] alu_control;
     assign alu_control[2:0] = funct3[2:0];
-    assign alu_control[3] = (opcode == 2'b01) ? 0'b0 : funct2[0];
+    assign alu_control[3] = (opcode == 2'b01) ? 1'b0 : funct2[0];
 
 
     // Instantiate the register file
