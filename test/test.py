@@ -180,7 +180,7 @@ async def test_project(dut):
     await s_type(dut, "x0", 0)  # Example for S-Type Store
     await l_type(dut, "x2", 7,0)
     await l_type(dut, "x3", 3,0)
-    await s_type(dut, "x2", 7)
+    await s_type(dut, "x3", 3)
 
     # await r_type(dut, "ADD", "x3", "x1", "x2", expected_output=0b00000000)  # Example for R-Type ADD
     # await i_type(dut, "ADDI", "x3", "x1", imm=0b00001, expected_output=0b00000101)  # Example for I-Type ADDI
