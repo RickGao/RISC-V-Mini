@@ -275,6 +275,12 @@ async def test_project(dut):
     register.update("x3", 6)
     await s_type(dut, "x3", register.get("x3"))
     await s_type(dut, "x2", register.get("x2"))
+    await l_type(dut, "x7", -128)
+    register.update("x7", -128)
+    await s_type(dut, "x7", register.get("x7"))
+    await l_type(dut, "x7", 127)
+    register.update("x7", 127)
+    await s_type(dut, "x7", register.get("x7"))
 
     await l_type(dut, "x7", -5)
     register.update("x7", -5)
@@ -338,7 +344,7 @@ async def test_project(dut):
     await l_type(dut, "x7", -128)
     register.update("x7", -128)
     await s_type(dut, "x7", register.get("x7"))
-    await i_type(dut, "SRA", "x1", "x7", 1)
+    await i_type(dut, "SRA", "x1", "x7", 4)
     register.update("x1", (register.get("x7") >> 4))
     await s_type(dut, "x1", register.get("x1"))
 
