@@ -283,6 +283,6 @@ async def test_project(dut):
     register_tracker.update_register("x1", (register_tracker.get_register("x2") << 1))
     await s_type(dut, "x1", register_tracker.get_register("x1"))
     # Test SRL
-    await i_type(dut, "SLL", "x1", "x2", 1)
+    await i_type(dut, "SRL", "x1", "x2", 1)
     register_tracker.update_register("x1", (register_tracker.get_register("x2") >> 1))
     await s_type(dut, "x1", register_tracker.get_register("x1"))
