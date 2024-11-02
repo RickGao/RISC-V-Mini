@@ -52,7 +52,8 @@ module tt_um_riscv_mini (
     wire [`WIDTH-1:0] reg_data1;   // Data from register 1
     wire [`WIDTH-1:0] reg_data2;   // Data from register 2
     wire [`WIDTH-1:0] alu_result;  // ALU output result
-    wire alu_zero, alu_carry;                 // ALU flag signals
+    wire alu_zero;                 // ALU zero signal
+    // wire alu_carry;                // ALU carry signal
 
     // Instruction type detection
     wire is_i_type = (opcode == 2'b01);
@@ -98,7 +99,7 @@ module tt_um_riscv_mini (
         .a(reg_data1),
         .b(is_i_type ? imm[7:0] : reg_data2),
         .out(alu_result),
-        .carry(alu_carry),
+        // .carry(alu_carry),
         .zero(alu_zero)
     );
 
