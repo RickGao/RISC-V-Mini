@@ -328,7 +328,7 @@ async def test_project(dut):
     await i_type(dut, "SRL", "x1", "x7", 1)
     register.update("x1", shift_right_logical(register.get("x7"), 1))
     await s_type(dut, "x1", register.get("x1"))
-    await i_type(dut, "SRL", "x1", "x2", 1)
+    await i_type(dut, "SRL", "x1", "x2", 3)
     register.update("x1", shift_right_logical(register.get("x2"), 3))
     await s_type(dut, "x1", register.get("x1"))
     # Test SRA
