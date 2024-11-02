@@ -274,8 +274,15 @@ async def test_project(dut):
     await i_type(dut,"ADDI","x6","x5", 4)
     register_tracker.update_register("x6", register_tracker.get_register("x5") + 4)
     await s_type(dut, "x6", register_tracker.get_register("x6"))
-
     # Test SUBI
     await i_type(dut, "SUBI", "x7", "x5", 4)
     register_tracker.update_register("x7", register_tracker.get_register("x5") - 4)
     await s_type(dut, "x7", register_tracker.get_register("x7"))
+    # Test SLL
+    await i_type(dut, "SLL", "x1","x2",1)
+    register_tracker.update_register("x1", (register_tracker.get_register("x2") << 1))
+    await s_type(dut, "x1", register_tracker.get_register("x1"))
+    # Test SRL
+    await i_type(dut, "SLL", "x1", "x2", 1)
+    register_tracker.update_register("x1", (register_tracker.get_register("x2") >> 1))
+    await s_type(dut, "x1", register_tracker.get_register("x1"))
