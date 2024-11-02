@@ -64,11 +64,11 @@ def to_8bit_binary(value):
 
     # 8 bit binary
     if value >= 0:
-        binary_str = f"{value:08b}"
+        binary_value = value & 0xFF
     else:
-        binary_str = f"{(value + 256):08b}"
+        binary_value = (value + 256) & 0xFF
 
-    return binary_str
+    return binary_value
 
 
 def shift_right_logical(value, shamt):
