@@ -57,6 +57,35 @@ def to_signed_8bit(value):
         return value
 
 
+def to_8bit_binary(value):
+
+    if value < -128 or value > 127:
+        raise ValueError("Value must be within the range of an 8-bit signed integer (-128 to 127)")
+
+    # 8 bit binary
+    if value >= 0:
+        binary_str = f"{value:08b}"
+    else:
+        binary_str = f"{(value + 256):08b}"
+
+    return binary_str
+
+
+def shift_right_logical(value, shamt):
+    # Ensure the value is in 8-bit range (-128 to 127)
+    if value < -128 or value > 127:
+        raise ValueError("Value must be within the range of an 8-bit signed integer (-128 to 127)")
+
+    # Convert to 8-bit unsigned equivalent
+    unsigned_value = value & 0xFF  # Mask to 8 bits
+
+    # Perform logical right shift
+    shifted = unsigned_value >> shamt
+
+    # Mask again to ensure it fits within 8 bits
+    return to_signed_8bit(shifted & 0xFF)
+
+
 class RegisterFileTracker:
     def __init__(self):
         # Initialize 8 registers with 8-bit signed integers, all set to 0
@@ -130,6 +159,7 @@ async def i_type(dut, operation, rd, rs1, imm, expected_output=0):
     dut._log.info(f"Executing I-Type Instruction: {operation} {rd}, {rs1}, {imm}")
     dut._log.info(f"funct3: {funct3}, Immediate: {imm}, rs1: {rs1_address}, rd: {rd_address}, Opcode: {opcode}")
 
+
     # Set inputs and wait
     instruction = (funct3 << 13) | (imm << 8) | (rs1_address << 5) | (rd_address << 2) | opcode
     dut.ui_in.value = instruction & 0xFF
@@ -149,6 +179,7 @@ async def l_type(dut, rd, imm, expected_output=0):
 
     # Log details
     dut._log.info(f"Executing L-Type Instruction: LOAD {rd}, {imm}")
+    imm = to_8bit_binary(imm)
     dut._log.info(f"Immediate: {imm}, rd: {rd_address}, Opcode: {opcode}")
 
     # Set inputs and wait
@@ -245,6 +276,10 @@ async def test_project(dut):
     await s_type(dut, "x3", register_tracker.get_register("x3"))
     await s_type(dut, "x2", register_tracker.get_register("x2"))
 
+    await l_type(dut, "x7", -5)
+    register_tracker.update_register("x7", -5)
+    await s_type(dut,"x7", -5)
+
     # Test AND
     await r_type(dut, "AND","x4", "x2","x3")
     register_tracker.update_register("x4",register_tracker.get_register("x2") & register_tracker.get_register("x3"))
@@ -282,7 +317,17 @@ async def test_project(dut):
     await i_type(dut, "SLL", "x1","x2",1)
     register_tracker.update_register("x1", (register_tracker.get_register("x2") << 1))
     await s_type(dut, "x1", register_tracker.get_register("x1"))
+    # Test SLL
+    await i_type(dut, "SLL", "x1", "x2", 7)
+    register_tracker.update_register("x1", (register_tracker.get_register("x2") << 7) & 0xFF)
+    await s_type(dut, "x1", register_tracker.get_register("x1"))
+    await l_type(dut, "x7", -5)
+    register_tracker.update_register("x7", -5)
+    await s_type(dut,"x7", -5)
     # Test SRL
-    await i_type(dut, "SRL", "x1", "x2", 1)
-    register_tracker.update_register("x1", (register_tracker.get_register("x2") >> 1))
+    await i_type(dut, "SRL", "x1", "x7", 1)
+    register_tracker.update_register("x1", shift_right_logical(register_tracker.get_register("x7"), 1))
+    # Test SRA
+    await i_type(dut, "SRA", "x1", "x7", 1)
+    register_tracker.update_register("x1", (register_tracker.get_register("x7") >> 1))
     await s_type(dut, "x1", register_tracker.get_register("x1"))
