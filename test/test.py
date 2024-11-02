@@ -91,7 +91,7 @@ class RegisterFileTracker:
         # Initialize 8 registers with 8-bit signed integers, all set to 0
         self.registers = [0] * 8
 
-    def update_register(self, register_name, value):
+    def update(self, register_name, value):
         """
         Update the value of a register.
         If the value exceeds the 8-bit signed integer range, it will be truncated.
@@ -102,14 +102,14 @@ class RegisterFileTracker:
             print(f"Value = {value}, out of range")
         self.registers[register_index] = value
 
-    def get_register(self, register_name):
+    def get(self, register_name):
         """
         Retrieve the current value of a specific register.
         """
         register_index = REGISTER_MAP[register_name]
         return self.registers[register_index]
 
-    def print_registers(self):
+    def print_all(self):
         """
         Print the current state of all registers.
         """
@@ -119,7 +119,7 @@ class RegisterFileTracker:
         print()
 
 
-register_tracker = RegisterFileTracker()
+register = RegisterFileTracker()
 
 
 
@@ -262,7 +262,7 @@ async def test_project(dut):
     await ClockCycles(dut.clk, 10)
 
     dut._log.info("Testing various instructions")
-    register_tracker.print_registers()
+    register.print_all()
 
     # Test x0
     await s_type(dut, "x0", 0)
@@ -270,64 +270,79 @@ async def test_project(dut):
     await s_type(dut, "x0", 0)
     # Test Load and Store
     await l_type(dut, "x2", 3)
-    register_tracker.update_register("x2", 3)
+    register.update("x2", 3)
     await l_type(dut, "x3", 6)
-    register_tracker.update_register("x3", 6)
-    await s_type(dut, "x3", register_tracker.get_register("x3"))
-    await s_type(dut, "x2", register_tracker.get_register("x2"))
+    register.update("x3", 6)
+    await s_type(dut, "x3", register.get("x3"))
+    await s_type(dut, "x2", register.get("x2"))
 
     await l_type(dut, "x7", -5)
-    register_tracker.update_register("x7", -5)
+    register.update("x7", -5)
     await s_type(dut,"x7", -5)
 
     # Test AND
     await r_type(dut, "AND","x4", "x2","x3")
-    register_tracker.update_register("x4",register_tracker.get_register("x2") & register_tracker.get_register("x3"))
-    await s_type(dut, "x4", register_tracker.get_register("x4"))
+    register.update("x4", register.get("x2") & register.get("x3"))
+    await s_type(dut, "x4", register.get("x4"))
     # Test OR
     await r_type(dut, "OR","x5","x2","x3")
-    register_tracker.update_register("x5",register_tracker.get_register("x2") | register_tracker.get_register("x3"))
-    await s_type(dut, "x5", register_tracker.get_register("x5"))
+    register.update("x5", register.get("x2") | register.get("x3"))
+    await s_type(dut, "x5", register.get("x5"))
     # Test ADD
     await r_type(dut, "ADD","x6", "x2", "x3")
-    register_tracker.update_register("x6",register_tracker.get_register("x2") + register_tracker.get_register("x3"))
-    await s_type(dut, "x6", register_tracker.get_register("x6"))
+    register.update("x6", register.get("x2") + register.get("x3"))
+    await s_type(dut, "x6", register.get("x6"))
     # Test SUB
     await r_type(dut, "SUB","x7", "x2", "x3")
-    register_tracker.update_register("x7", register_tracker.get_register("x2") - register_tracker.get_register("x3"))
-    await s_type(dut, "x7", register_tracker.get_register("x7"))
+    register.update("x7", register.get("x2") - register.get("x3"))
+    await s_type(dut, "x7", register.get("x7"))
     # Test XOR
     await r_type(dut, "XOR", "x4", "x2", "x3")
-    register_tracker.update_register("x4", register_tracker.get_register("x2") ^ register_tracker.get_register("x3"))
-    await s_type(dut, "x4", register_tracker.get_register("x4"))
+    register.update("x4", register.get("x2") ^ register.get("x3"))
+    await s_type(dut, "x4", register.get("x4"))
     # Test SLT
     await r_type(dut, "SLT", "x5", "x2", "x3")
-    register_tracker.update_register("x5", (register_tracker.get_register("x2") < register_tracker.get_register("x3")))
-    await s_type(dut, "x5", register_tracker.get_register("x5"))
+    register.update("x5", (register.get("x2") < register.get("x3")))
+    await s_type(dut, "x5", register.get("x5"))
 
     # Test ADDI
     await i_type(dut,"ADDI","x6","x5", 4)
-    register_tracker.update_register("x6", register_tracker.get_register("x5") + 4)
-    await s_type(dut, "x6", register_tracker.get_register("x6"))
+    register.update("x6", register.get("x5") + 4)
+    await s_type(dut, "x6", register.get("x6"))
     # Test SUBI
     await i_type(dut, "SUBI", "x7", "x5", 4)
-    register_tracker.update_register("x7", register_tracker.get_register("x5") - 4)
-    await s_type(dut, "x7", register_tracker.get_register("x7"))
+    register.update("x7", register.get("x5") - 4)
+    await s_type(dut, "x7", register.get("x7"))
     # Test SLL
     await i_type(dut, "SLL", "x1","x2",1)
-    register_tracker.update_register("x1", (register_tracker.get_register("x2") << 1))
-    await s_type(dut, "x1", register_tracker.get_register("x1"))
+    register.update("x1", (register.get("x2") << 1))
+    await s_type(dut, "x1", register.get("x1"))
     # Test SLL
     await i_type(dut, "SLL", "x1", "x2", 7)
-    register_tracker.update_register("x1", to_signed_8bit((register_tracker.get_register("x2") << 7) & 0xFF))
-    await s_type(dut, "x1", register_tracker.get_register("x1"))
+    register.update("x1", to_signed_8bit((register.get("x2") << 7) & 0xFF))
+    await s_type(dut, "x1", register.get("x1"))
     await l_type(dut, "x7", -5)
-    register_tracker.update_register("x7", -5)
-    await s_type(dut,"x7", -5)
+    register.update("x7", -5)
+    await s_type(dut,"x7", register.get("x7"))
     # Test SRL
     await i_type(dut, "SRL", "x1", "x7", 1)
-    register_tracker.update_register("x1", shift_right_logical(register_tracker.get_register("x7"), 1))
+    register.update("x1", shift_right_logical(register.get("x7"), 1))
+    await s_type(dut, "x1", register.get("x1"))
+    await i_type(dut, "SRL", "x1", "x2", 1)
+    register.update("x1", shift_right_logical(register.get("x2"), 3))
+    await s_type(dut, "x1", register.get("x1"))
     # Test SRA
     await i_type(dut, "SRA", "x1", "x7", 1)
-    register_tracker.update_register("x1", (register_tracker.get_register("x7") >> 1))
-    await s_type(dut, "x1", register_tracker.get_register("x1"))
+    register.update("x1", (register.get("x7") >> 1))
+    await s_type(dut, "x1", register.get("x1"))
+
+    await l_type(dut, "x4", 3)
+    register.update("x4", 3)
+    await l_type(dut, "x5", -5)
+    register.update("x5", -5)
+    # Test BEQ
+    await b_type(dut, "BEQ", "x3", "x4", (register.get("x3") == register.get("x4")))
+    # Test BNE
+    await b_type(dut, "BNE", "x3", "x5", (register.get("x3") != register.get("x5")))
+    # Test BLT
+    await b_type(dut, "BLT", "x5", "x4", (register.get("x5") < register.get("x4")))
