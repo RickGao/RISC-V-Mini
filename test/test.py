@@ -238,9 +238,9 @@ async def test_project(dut):
     await l_type(dut, "x0", 10)
     await s_type(dut, "x0", 0)
     # Test Load and Store
-    await l_type(dut, "x2", 3)
+    await l_type(dut, "x2", 6)
     register_tracker.update_register("x2", 6)
-    await l_type(dut, "x3", 6)
+    await l_type(dut, "x3", 3)
     register_tracker.update_register("x3", 3)
     await s_type(dut, "x3", register_tracker.get_register("x3"))
     await s_type(dut, "x2", register_tracker.get_register("x2"))
@@ -270,4 +270,3 @@ async def test_project(dut):
     register_tracker.update_register("x5", (register_tracker.get_register("x2") < register_tracker.get_register("x3")))
     await s_type(dut, "x5", register_tracker.get_register("x5"))
 
-    
