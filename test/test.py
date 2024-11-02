@@ -319,7 +319,7 @@ async def test_project(dut):
     await s_type(dut, "x1", register_tracker.get_register("x1"))
     # Test SLL
     await i_type(dut, "SLL", "x1", "x2", 7)
-    register_tracker.update_register("x1", (register_tracker.get_register("x2") << 7) & 0xFF)
+    register_tracker.update_register("x1", to_signed_8bit((register_tracker.get_register("x2") << 7) & 0xFF))
     await s_type(dut, "x1", register_tracker.get_register("x1"))
     await l_type(dut, "x7", -5)
     register_tracker.update_register("x7", -5)
