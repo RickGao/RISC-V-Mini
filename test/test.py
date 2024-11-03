@@ -674,144 +674,53 @@ async def test_project(dut):
     print("Test BEQ\n")
     register.print_all()
 
-    await l_type(dut, "x3", 3)
-    register.update("x3", 3)
-    await l_type(dut, "x4", 3)
-    register.update("x4", 3)
-    await l_type(dut, "x5", -5)
-    register.update("x5", -5)
+    await l_type(dut, "x1", 3)
+    register.update("x1", 3)
+    await l_type(dut, "x2", 3)
+    register.update("x2", 3)
+    await l_type(dut, "x3", -128)
+    register.update("x3", -128)
+    await l_type(dut, "x4", 127)
+    register.update("x4", 127)
+    for rd in reg_namelist[5:]:
+        imm = randint(-128, 127)
+        await l_type(dut, rd, imm)
+        register.update(rd, imm)
+    register.print_all()
 
-    await b_type(dut, "BEQ", "x3", "x4", (register.get("x3") == register.get("x4")))
 
-    await b_type(dut, "BEQ", "x4", "x5", (register.get("x4") == register.get("x5")))
+    await b_type(dut, "BEQ", "x1", "x2", (register.get("x1") == register.get("x2")))
+
+    await b_type(dut, "BEQ", "x2", "x3", (register.get("x2") == register.get("x3")))
+
+    for i in range(10):
+        rs1 = choice(reg_namelist)
+        rs2 = choice(reg_namelist)
+        await b_type(dut, "BEQ", rs1, rs2, (register.get(rs1) == register.get(rs2)))
+
 
     print("Test BNE\n")
     register.print_all()
 
-    await b_type(dut, "BNE", "x3", "x5", (register.get("x3") != register.get("x5")))
+    await b_type(dut, "BNE", "x1", "x3", (register.get("x1") != register.get("x3")))
 
-    await b_type(dut, "BNE", "x3", "x4", (register.get("x3") != register.get("x4")))
+    await b_type(dut, "BNE", "x1", "x2", (register.get("x1") != register.get("x2")))
+
+    for i in range(10):
+        rs1 = choice(reg_namelist)
+        rs2 = choice(reg_namelist)
+        await b_type(dut, "BNE", rs1, rs2, (register.get(rs1) == register.get(rs2)))
 
     print("Test BLT\n")
     register.print_all()
 
-    await b_type(dut, "BLT", "x5", "x4", (register.get("x5") < register.get("x4")))
+    await b_type(dut, "BLT", "x3", "x2", (register.get("x3") < register.get("x2")))
 
-    await b_type(dut, "BLT", "x3", "x4", (register.get("x3") < register.get("x4")))
+    await b_type(dut, "BLT", "x1", "x2", (register.get("x1") < register.get("x2")))
 
+    for i in range(10):
+        rs1 = choice(reg_namelist)
+        rs2 = choice(reg_namelist)
+        await b_type(dut, "BLT", rs1, rs2, (register.get(rs1) == register.get(rs2)))
 
-
-
-    # # 复位DUT
-    # dut.ena.value = 1
-    # dut.ui_in.value = 0
-    # dut.uio_in.value = 0
-    # dut.rst_n.value = 0
-    # await ClockCycles(dut.clk, 10)
-    # dut.rst_n.value = 1
-    # await ClockCycles(dut.clk, 10)
-    #
-    # # 测试x0无法被写入
-    # # 尝试加载一个值到x0
-    # await l_type(dut, "x0", 42)
-    # # x0应保持为0
-    # await s_type(dut, "x0", 0)
-    # register.update("x0", 0)  # 确保跟踪器反映预期值
-    #
-    # # 尝试使用R型指令写入x0
-    # await l_type(dut, "x1", 10)
-    # register.update("x1", 10)
-    # await r_type(dut, "ADD", "x0", "x1", "x1")  # x0 = x1 + x1
-    # # x0应保持为0
-    # await s_type(dut, "x0", 0)
-    # register.update("x0", 0)
-    #
-    # # 尝试使用I型指令写入x0
-    # await i_type(dut, "ADDI", "x0", "x1", 5)
-    # # x0应保持为0
-    # await s_type(dut, "x0", 0)
-    # register.update("x0", 0)
-    #
-    # # 测试加法中的溢出
-    # await l_type(dut, "x2", 127)
-    # register.update("x2", 127)
-    # await l_type(dut, "x3", 1)
-    # register.update("x3", 1)
-    # await r_type(dut, "ADD", "x4", "x2", "x3")
-    # result = to_8bit_signed_int(register.get("x2") + register.get("x3"))
-    # register.update("x4", result)
-    # await s_type(dut, "x4", result)
-    #
-    # # 测试减法中的下溢
-    # await l_type(dut, "x2", -128)
-    # register.update("x2", -128)
-    # await l_type(dut, "x3", 1)
-    # register.update("x3", 1)
-    # await r_type(dut, "SUB", "x4", "x2", "x3")
-    # result = to_8bit_signed_int(register.get("x2") - register.get("x3"))
-    # register.update("x4", result)
-    # await s_type(dut, "x4", result)
-    #
-    # # 测试最大移位量
-    # await l_type(dut, "x5", 1)
-    # register.update("x5", 1)
-    # await i_type(dut, "SLL", "x6", "x5", 7)
-    # result = to_8bit_signed_int((register.get("x5") << 7) & 0xFF)
-    # register.update("x6", result)
-    # await s_type(dut, "x6", result)
-    #
-    # await i_type(dut, "SRL", "x7", "x5", 7)
-    # result = shift_right_logical(register.get("x5"), 7)
-    # register.update("x7", result)
-    # await s_type(dut, "x7", result)
-    #
-    # # 测试超过限制的移位量
-    # await i_type(dut, "SLL", "x6", "x5", 8)
-    # shift_amount = 8 % 8  # 假设移位量被掩码为3位
-    # result = to_8bit_signed_int((register.get("x5") << shift_amount) & 0xFF)
-    # register.update("x6", result)
-    # await s_type(dut, "x6", result)
-    #
-    # # 测试极限值的立即数
-    # await i_type(dut, "ADDI", "x1", "x1", 31)
-    # result = to_8bit_signed_int(register.get("x1") + 31)
-    # register.update("x1", result)
-    # await s_type(dut, "x1", result)
-    #
-    # await i_type(dut, "ADDI", "x1", "x1", -32)
-    # result = to_8bit_signed_int((register.get("x1") - 32) & 0xFF)
-    # register.update("x1", result)
-    # await s_type(dut, "x1", result)
-    #
-    # # 使用所有寄存器测试操作
-    # for rd in REGISTER_MAP.keys():
-    #     for rs1 in REGISTER_MAP.keys():
-    #         await l_type(dut, rs1, 5)
-    #         register.update(rs1, 5)
-    #         await l_type(dut, "x3", 3)
-    #         register.update("x3", 3)
-    #         await r_type(dut, "ADD", rd, rs1, "x3")
-    #         result = to_8bit_signed_int((register.get(rs1) + register.get("x3")) & 0xFF)
-    #         register.update(rd, result)
-    #         await s_type(dut, rd, result)
-    #
-    # # 使用边界条件测试分支指令
-    # # BEQ使用相同的寄存器
-    # await b_type(dut, "BEQ", "x1", "x1", 1)  # 应为真
-    # # BNE使用相同的寄存器
-    # await b_type(dut, "BNE", "x1", "x1", 0)  # 应为假
-    # # BLT使用最大负值和正值
-    # await l_type(dut, "x2", -128)
-    # register.update("x2", -128)
-    # await l_type(dut, "x3", 127)
-    # register.update("x3", 127)
-    # await b_type(dut, "BLT", "x2", "x3", 1)  # -128 < 127，应为真
-    # await b_type(dut, "BLT", "x3", "x2", 0)  # 127 < -128，应为假
-    #
-    # # 测试立即数加法中的溢出
-    # await l_type(dut, "x4", 100)
-    # register.update("x4", 100)
-    # await i_type(dut, "ADDI", "x5", "x4", 60)
-    # result = to_8bit_signed_int(register.get("x4") + 60)
-    # register.update("x5", result)
-    # await s_type(dut, "x5", result)
+    print("\nAll Tests Passed!\n\n")
