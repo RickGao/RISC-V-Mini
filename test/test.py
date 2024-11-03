@@ -477,7 +477,7 @@ async def test_project(dut):
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
     await i_type(dut, "SLL", rd, rs1,0)
-    register.update(rd, (to_int(register.get(rs1) << 7)))
+    register.update(rd, (to_int(register.get(rs1) << 0)))
     await s_type(dut, rd, register.get(rd))
 
     rd = choice(reg_namelist[1:])
