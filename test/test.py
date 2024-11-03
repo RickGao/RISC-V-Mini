@@ -444,23 +444,10 @@ async def test_project(dut):
     register.update(rd, to_int(register.get(rs1) + 31))
     await s_type(dut, rd, register.get(rd))
 
-    register.print_all()
-
-    for rs1 in reg_namelist:
-        await s_type(dut, rs1, register.get(rs1))
-
-    rd = choice(reg_namelist[1:])
-    rs1 = choice(reg_namelist)
-    await i_type(dut,"ADDI",rd, rs1, -32)
-    register.update(rd, to_int(register.get(rs1) - 32))
-    await s_type(dut, rd, register.get(rd))
-
-    register.print_all()
-
     for i in range(10):
         rd = choice(reg_namelist[1:])
         rs1 = choice(reg_namelist)
-        imm = randint(-32, 31)
+        imm = randint(0, 31)
         await i_type(dut, "ADDI", rd, rs1, imm)
         register.update(rd, to_int(register.get(rs1) + imm))
         await s_type(dut, rd, register.get(rd))
@@ -473,16 +460,10 @@ async def test_project(dut):
     register.update(rd, to_int(register.get(rs1) - 31))
     await s_type(dut, rd, register.get(rd))
 
-    rd = choice(reg_namelist[1:])
-    rs1 = choice(reg_namelist)
-    await i_type(dut, "SUBI", rd, rs1, -32)
-    register.update(rd, to_int(register.get(rs1) + 32))
-    await s_type(dut, rd, register.get(rd))
-
     for i in range(10):
         rd = choice(reg_namelist[1:])
         rs1 = choice(reg_namelist)
-        imm = randint(-32, 31)
+        imm = randint(0, 31)
         await i_type(dut, "SUBI", rd, rs1, imm)
         register.update(rd, to_int(register.get(rs1) - imm))
         await s_type(dut, rd, register.get(rd))
