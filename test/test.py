@@ -292,8 +292,9 @@ async def test_project(dut):
             register.update(rd, imm)
             await s_type(dut, rd, register.get(rd))
 
-    # Test R-Type
-    # Test AND
+    print("Test R-Type\n")
+    print("Test AND\n")
+
     rd = choice(reg_namelist)
     rs1 = choice(reg_namelist)
     await r_type(dut, "AND", rd, rs1, "x0")
@@ -316,8 +317,7 @@ async def test_project(dut):
         register.update(rd, to_8bit_signed_int(register.get(rs1) & register.get(rs2)))
         await s_type(dut, rd, register.get(rd))
 
-
-    # Test OR
+    print("Test OR\n")
 
     rd = choice(reg_namelist)
     rs1 = choice(reg_namelist)
@@ -342,17 +342,21 @@ async def test_project(dut):
         await s_type(dut, rd, register.get(rd))
 
 
-    # Test ADD
+    print("Test ADD\n")
+
     await r_type(dut, "ADD","x6", "x2", "x3")
     register.update("x6", register.get("x2") + register.get("x3"))
     await s_type(dut, "x6", register.get("x6"))
 
 
-    # Test SUB
+    print("Test SUB\n")
+
     await r_type(dut, "SUB","x7", "x2", "x3")
     register.update("x7", register.get("x2") - register.get("x3"))
     await s_type(dut, "x7", register.get("x7"))
-    # Test XOR
+
+    print("Test XOR\n")
+
     await r_type(dut, "XOR", "x4", "x2", "x3")
     register.update("x4", register.get("x2") ^ register.get("x3"))
     await s_type(dut, "x4", register.get("x4"))
@@ -361,34 +365,44 @@ async def test_project(dut):
     register.update("x5", (register.get("x2") < register.get("x3")))
     await s_type(dut, "x5", register.get("x5"))
 
+    print("Test I Type\n")
+    print("Test ADDI\n")
 
-    # Test ADDI
     await i_type(dut,"ADDI","x6","x5", 4)
     register.update("x6", register.get("x5") + 4)
     await s_type(dut, "x6", register.get("x6"))
-    # Test SUBI
+
+    print("Test SUBI\n")
+
     await i_type(dut, "SUBI", "x7", "x5", 4)
     register.update("x7", register.get("x5") - 4)
     await s_type(dut, "x7", register.get("x7"))
-    # Test SLL
+
+    print("Test SLL\n")
+
     await i_type(dut, "SLL", "x1","x2",1)
     register.update("x1", (register.get("x2") << 1))
     await s_type(dut, "x1", register.get("x1"))
-    # Test SLL
+
     await i_type(dut, "SLL", "x1", "x2", 7)
     register.update("x1", to_8bit_signed_int((register.get("x2") << 7) & 0xFF))
     await s_type(dut, "x1", register.get("x1"))
+
+    print("Test SRL\n")
+
     await l_type(dut, "x7", -5)
     register.update("x7", -5)
     await s_type(dut,"x7", register.get("x7"))
-    # Test SRL
+
     await i_type(dut, "SRL", "x1", "x7", 1)
     register.update("x1", shift_right_logical(register.get("x7"), 1))
     await s_type(dut, "x1", register.get("x1"))
     await i_type(dut, "SRL", "x1", "x2", 3)
     register.update("x1", shift_right_logical(register.get("x2"), 3))
     await s_type(dut, "x1", register.get("x1"))
-    # Test SRA
+
+    print("Test SRA\n")
+
     await i_type(dut, "SRA", "x1", "x7", 1)
     register.update("x1", (register.get("x7") >> 1))
     await s_type(dut, "x1", register.get("x1"))
@@ -399,15 +413,25 @@ async def test_project(dut):
     register.update("x1", (register.get("x7") >> 4))
     await s_type(dut, "x1", register.get("x1"))
 
+
+    print("Test B-Type\n")
+    print("Test BEQ\n")
+
+    await l_type(dut, "x3", 3)
+    register.update("x3", 3)
     await l_type(dut, "x4", 3)
     register.update("x4", 3)
     await l_type(dut, "x5", -5)
     register.update("x5", -5)
-    # Test BEQ
+
     await b_type(dut, "BEQ", "x3", "x4", (register.get("x3") == register.get("x4")))
-    # Test BNE
+
+    print("Test BNE\n")
+
     await b_type(dut, "BNE", "x3", "x5", (register.get("x3") != register.get("x5")))
-    # Test BLT
+
+    print("Test BLT\n")
+
     await b_type(dut, "BLT", "x5", "x4", (register.get("x5") < register.get("x4")))
 
 
