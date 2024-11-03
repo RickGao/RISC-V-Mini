@@ -709,7 +709,7 @@ async def test_project(dut):
     for i in range(10):
         rs1 = choice(reg_namelist)
         rs2 = choice(reg_namelist)
-        await b_type(dut, "BNE", rs1, rs2, (register.get(rs1) == register.get(rs2)))
+        await b_type(dut, "BNE", rs1, rs2, (register.get(rs1) != register.get(rs2)))
 
     print("Test BLT\n")
     register.print_all()
@@ -721,6 +721,6 @@ async def test_project(dut):
     for i in range(10):
         rs1 = choice(reg_namelist)
         rs2 = choice(reg_namelist)
-        await b_type(dut, "BLT", rs1, rs2, (register.get(rs1) == register.get(rs2)))
+        await b_type(dut, "BLT", rs1, rs2, (register.get(rs1) < register.get(rs2)))
 
     print("\nAll Tests Passed!\n\n")
