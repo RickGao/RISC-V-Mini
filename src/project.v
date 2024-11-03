@@ -67,7 +67,7 @@ module tt_um_riscv_mini (
     assign funct3      = instruction[15:13];
     assign funct2      = instruction[12:11];
     assign imm[4:0]    = instruction[12:8];
-    assign imm[7:5]    = is_l_type ? instruction[15:13] : {3{instruction[12]}};
+    assign imm[7:5]    = is_l_type ? instruction[15:13] : 3'b0;
 
     // Write enable signal based on opcode
     wire we;                       
