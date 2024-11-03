@@ -92,10 +92,8 @@ class RegisterFileTracker:
         self.registers = [0] * 8
 
     def update(self, register_name, value):
-        """
-        Update the value of a register.
-        If the value exceeds the 8-bit signed integer range, it will be truncated.
-        """
+        # Update the value of a register.
+        # If the value exceeds the 8-bit signed integer range, it will be truncated.
         register_index = REGISTER_MAP[register_name]
         # Ensure value is within 8-bit signed integer range
         if value > 127 or value < - 128:
@@ -105,16 +103,12 @@ class RegisterFileTracker:
         self.registers[register_index] = value
 
     def get(self, register_name):
-        """
-        Retrieve the current value of a specific register.
-        """
+        # Retrieve the current value of a specific register.
         register_index = REGISTER_MAP[register_name]
         return self.registers[register_index]
 
     def print_all(self):
-        """
-        Print the current state of all registers.
-        """
+        # Print the current state of all registers.
         print("Current Register Values:")
         for i in range(len(self.registers)):
             print(f"x{i}: {self.registers[i]}")
@@ -442,13 +436,13 @@ async def test_project(dut):
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
     await i_type(dut,"ADDI",rd, rs1, 31)
-    register.update(rd, register.get(rs1) + 31)
+    register.update(rd, to_int(register.get(rs1) + 31))
     await s_type(dut, rd, register.get(rd))
 
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
     await i_type(dut,"ADDI",rd, rs1, -32)
-    register.update(rd, register.get(rs1) - 32)
+    register.update(rd, to_int(register.get(rs1) - 32))
     await s_type(dut, rd, register.get(rd))
 
     for i in range(10):
@@ -456,7 +450,7 @@ async def test_project(dut):
         rs1 = choice(reg_namelist)
         imm = randint(-32, 31)
         await i_type(dut, "ADDI", rd, rs1, imm)
-        register.update(rd, register.get(rs1) + imm)
+        register.update(rd, to_int(register.get(rs1) + imm))
         await s_type(dut, rd, register.get(rd))
 
     print("Test SUBI\n")
@@ -464,13 +458,13 @@ async def test_project(dut):
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
     await i_type(dut, "SUBI", rd, rs1, 31)
-    register.update(rd, register.get(rs1) - 31)
+    register.update(rd, to_int(register.get(rs1) - 31))
     await s_type(dut, rd, register.get(rd))
 
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
     await i_type(dut, "SUBI", rd, rs1, -32)
-    register.update(rd, register.get(rs1) + 32)
+    register.update(rd, to_int(register.get(rs1) + 32))
     await s_type(dut, rd, register.get(rd))
 
     for i in range(10):
@@ -478,7 +472,7 @@ async def test_project(dut):
         rs1 = choice(reg_namelist)
         imm = randint(-32, 31)
         await i_type(dut, "SUBI", rd, rs1, imm)
-        register.update(rd, register.get(rs1) - imm)
+        register.update(rd, to_int(register.get(rs1) - imm))
         await s_type(dut, rd, register.get(rd))
 
     # await i_type(dut, "SUBI", "x7", "x5", 4)
@@ -487,39 +481,135 @@ async def test_project(dut):
 
     print("Test SLL\n")
 
-    await i_type(dut, "SLL", "x1","x2",1)
-    register.update("x1", (register.get("x2") << 1))
-    await s_type(dut, "x1", register.get("x1"))
+    rd = choice(reg_namelist[1:])
+    rs1 = choice(reg_namelist)
+    await i_type(dut, "SLL", rd, rs1,0)
+    register.update(rd, (to_int(register.get(rs1) << 7)))
+    await s_type(dut, rd, register.get(rd))
 
-    await i_type(dut, "SLL", "x1", "x2", 7)
-    register.update("x1", to_int((register.get("x2") << 7) & 0xFF))
-    await s_type(dut, "x1", register.get("x1"))
+    rd = choice(reg_namelist[1:])
+    rs1 = choice(reg_namelist)
+    await i_type(dut, "SLL", rd, rs1, 7)
+    register.update(rd, (to_int(register.get(rs1) << 7)))
+    await s_type(dut, rd, register.get(rd))
+
+    for i in range(10):
+        rd = choice(reg_namelist[1:])
+        rs1 = choice(reg_namelist)
+        imm = randint(0, 7)
+        await i_type(dut, "SLL", rd, rs1, imm)
+        register.update(rd, (to_int(register.get(rs1) << imm)))
+        await s_type(dut, rd, register.get(rd))
+
+    # await i_type(dut, "SLL", "x1", "x2", 7)
+    # register.update("x1", to_int((register.get("x2") << 7) & 0xFF))
+    # await s_type(dut, "x1", register.get("x1"))
 
     print("Test SRL\n")
 
-    await l_type(dut, "x7", -5)
-    register.update("x7", -5)
+    rs1 = choice(reg_namelist)
+    rd = choice(reg_namelist[1:])
+    await i_type(dut, "SRL", rd, rs1, 0)
+    register.update(rd, shift_right_logical(register.get(rs1), 0))
+    await s_type(dut, rd, register.get(rd))
+
+    rd = choice(reg_namelist[1:])
+    await i_type(dut, "SRL", rd, rs1, 7)
+    register.update(rd, shift_right_logical(register.get(rs1), 7))
+    await s_type(dut, rd, register.get(rd))
+
+    await l_type(dut, "x7", 127)
+    register.update("x7", 127)
     await s_type(dut,"x7", register.get("x7"))
 
-    await i_type(dut, "SRL", "x1", "x7", 1)
-    register.update("x1", shift_right_logical(register.get("x7"), 1))
-    await s_type(dut, "x1", register.get("x1"))
-    await i_type(dut, "SRL", "x1", "x2", 3)
-    register.update("x1", shift_right_logical(register.get("x2"), 3))
-    await s_type(dut, "x1", register.get("x1"))
+    rd = choice(reg_namelist[1:])
+    await i_type(dut, "SRL", rd, "x7", 0)
+    register.update(rd, shift_right_logical(register.get("x7"), 0))
+    await s_type(dut, rd, register.get(rd))
+
+    rd = choice(reg_namelist[1:])
+    await i_type(dut, "SRL", rd, "x7", 7)
+    register.update(rd, shift_right_logical(register.get("x7"), 7))
+    await s_type(dut, rd, register.get(rd))
+
+    await l_type(dut, "x7", -128)
+    register.update("x7", -128)
+    await s_type(dut,"x7", register.get("x7"))
+
+    rd = choice(reg_namelist[1:])
+    await i_type(dut, "SRL", rd, "x7", 0)
+    register.update(rd, shift_right_logical(register.get("x7"), 0))
+    await s_type(dut, rd, register.get(rd))
+
+    rd = choice(reg_namelist[1:])
+    await i_type(dut, "SRL", rd, "x7", 7)
+    register.update(rd, shift_right_logical(register.get("x7"), 7))
+    await s_type(dut, rd, register.get(rd))
+
+    for i in range(10):
+        rd = choice(reg_namelist[1:])
+        rs1 = choice(reg_namelist)
+        imm = randint(0, 7)
+        await i_type(dut, "SRL", rd, rs1, imm)
+        register.update(rd, shift_right_logical(register.get(rs1), imm))
+        await s_type(dut, rd, register.get(rd))
+
+    # await i_type(dut, "SRL", "x1", "x7", 1)
+    # register.update("x1", shift_right_logical(register.get("x7"), 1))
+    # await s_type(dut, "x1", register.get("x1"))
+    #
+    # await i_type(dut, "SRL", "x1", "x2", 3)
+    # register.update("x1", shift_right_logical(register.get("x2"), 3))
+    # await s_type(dut, "x1", register.get("x1"))
 
     print("Test SRA\n")
 
-    await i_type(dut, "SRA", "x1", "x7", 1)
-    register.update("x1", (register.get("x7") >> 1))
-    await s_type(dut, "x1", register.get("x1"))
+    rs1 = choice(reg_namelist)
+    rd = choice(reg_namelist[1:])
+    await i_type(dut, "SRA", rd, rs1, 0)
+    register.update(rd, to_int(register.get(rs1) >> 0))
+    await s_type(dut, rd, register.get(rd))
+
+    rs1 = choice(reg_namelist)
+    await i_type(dut, "SRA", rd, rs1, 7)
+    register.update(rd, to_int(register.get(rs1) >> 7))
+    await s_type(dut, rd, register.get(rd))
+
+    await l_type(dut, "x7", 127)
+    register.update("x7", 127)
+    await s_type(dut,"x7", register.get("x7"))
+
+    await i_type(dut, "SRA", rd, "x7", 0)
+    register.update(rd, to_int(register.get("x7") >> 0))
+    await s_type(dut, rd, register.get(rd))
+
+    await i_type(dut, "SRA", rd, "x7", 7)
+    register.update(rd, to_int(register.get("x7") >> 7))
+    await s_type(dut, rd, register.get(rd))
+
     await l_type(dut, "x7", -128)
     register.update("x7", -128)
     await s_type(dut, "x7", register.get("x7"))
-    await i_type(dut, "SRA", "x1", "x7", 4)
-    register.update("x1", (register.get("x7") >> 4))
-    await s_type(dut, "x1", register.get("x1"))
 
+    await i_type(dut, "SRA", rd, "x7", 0)
+    register.update(rd, to_int(register.get("x7") >> 0))
+    await s_type(dut, rd, register.get(rd))
+
+    await i_type(dut, "SRA", rd, "x7", 7)
+    register.update(rd, to_int(register.get("x7") >> 7))
+    await s_type(dut, rd, register.get(rd))
+
+    for i in range(10):
+        rd = choice(reg_namelist[1:])
+        rs1 = choice(reg_namelist)
+        imm = randint(0, 7)
+        await i_type(dut, "SRA", rd, rs1, imm)
+        register.update(rd, to_int(register.get(rs1) >> imm))
+        await s_type(dut, rd, register.get(rd))
+
+    # await i_type(dut, "SRA", "x1", "x7", 4)
+    # register.update("x1", (register.get("x7") >> 4))
+    # await s_type(dut, "x1", register.get("x1"))
 
     print("Test B-Type\n")
     print("Test BEQ\n")
