@@ -439,15 +439,51 @@ async def test_project(dut):
     print("Test I Type\n")
     print("Test ADDI\n")
 
-    await i_type(dut,"ADDI","x6","x5", 4)
-    register.update("x6", register.get("x5") + 4)
-    await s_type(dut, "x6", register.get("x6"))
+    rd = choice(reg_namelist[1:])
+    rs1 = choice(reg_namelist)
+    await i_type(dut,"ADDI",rd, rs1, 31)
+    register.update(rd, register.get(rs1) + 31)
+    await s_type(dut, rd, register.get(rd))
+
+    rd = choice(reg_namelist[1:])
+    rs1 = choice(reg_namelist)
+    await i_type(dut,"ADDI",rd, rs1, -32)
+    register.update(rd, register.get(rs1) - 32)
+    await s_type(dut, rd, register.get(rd))
+
+    for i in range(10):
+        rd = choice(reg_namelist[1:])
+        rs1 = choice(reg_namelist)
+        imm = randint(-32, 31)
+        await i_type(dut, "ADDI", rd, rs1, imm)
+        register.update(rd, register.get(rs1) + imm)
+        await s_type(dut, rd, register.get(rd))
 
     print("Test SUBI\n")
 
-    await i_type(dut, "SUBI", "x7", "x5", 4)
-    register.update("x7", register.get("x5") - 4)
-    await s_type(dut, "x7", register.get("x7"))
+    rd = choice(reg_namelist[1:])
+    rs1 = choice(reg_namelist)
+    await i_type(dut, "SUBI", rd, rs1, 31)
+    register.update(rd, register.get(rs1) - 31)
+    await s_type(dut, rd, register.get(rd))
+
+    rd = choice(reg_namelist[1:])
+    rs1 = choice(reg_namelist)
+    await i_type(dut, "SUBI", rd, rs1, -32)
+    register.update(rd, register.get(rs1) + 32)
+    await s_type(dut, rd, register.get(rd))
+
+    for i in range(10):
+        rd = choice(reg_namelist[1:])
+        rs1 = choice(reg_namelist)
+        imm = randint(-32, 31)
+        await i_type(dut, "SUBI", rd, rs1, imm)
+        register.update(rd, register.get(rs1) - imm)
+        await s_type(dut, rd, register.get(rd))
+
+    # await i_type(dut, "SUBI", "x7", "x5", 4)
+    # register.update("x7", register.get("x5") - 4)
+    # await s_type(dut, "x7", register.get("x7"))
 
     print("Test SLL\n")
 
