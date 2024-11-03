@@ -25,12 +25,16 @@ Single-cycle execution, optimized for minimal hardware complexity, reducing the 
 
 ## How to test
 
-Simply set the input to be the instruction and clock once to receive the output.
+Simply set the input to the instruction and clock once to receive the output.
 
+R-Type, I-Type, and L-Type instructions will output 0.
+
+The S-Type instruction will output the value of the register.
+
+The B-Type instruction will output 1 if the branch is taken and 0 if it is not taken.
 
 
 Instructions List
-
 
 R-Type
 
