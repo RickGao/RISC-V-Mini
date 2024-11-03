@@ -435,6 +435,9 @@ async def test_project(dut):
 
     register.print_all()
 
+    for rs1 in reg_namelist:
+        await s_type(dut, rs1, register.get(rs1))
+
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
     await i_type(dut,"ADDI",rd, rs1, 31)
@@ -442,6 +445,9 @@ async def test_project(dut):
     await s_type(dut, rd, register.get(rd))
 
     register.print_all()
+
+    for rs1 in reg_namelist:
+        await s_type(dut, rs1, register.get(rs1))
 
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
