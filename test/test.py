@@ -433,17 +433,23 @@ async def test_project(dut):
     print("Test I Type\n")
     print("Test ADDI\n")
 
+    register.print_all()
+
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
     await i_type(dut,"ADDI",rd, rs1, 31)
     register.update(rd, to_int(register.get(rs1) + 31))
     await s_type(dut, rd, register.get(rd))
 
+    register.print_all()
+
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
     await i_type(dut,"ADDI",rd, rs1, -32)
     register.update(rd, to_int(register.get(rs1) - 32))
     await s_type(dut, rd, register.get(rd))
+
+    register.print_all()
 
     for i in range(10):
         rd = choice(reg_namelist[1:])
