@@ -44,9 +44,9 @@ B_TYPE_FUNCT3 = {
     "BLT":  0b111,
 }
 
-reg_namelist = ["x1", "x2", "x3", "x4", "x5", "x6", "x7"]
+reg_namelist = ["x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7"]
 
-def to_8bit_signed_int(value):
+def to_int(value):
 
     # Convert an integer to an 8-bit signed integer in the range of -128 to 127.
     value = int(value) & 0xFF  # Ensure value is within 0 to 255
@@ -57,7 +57,7 @@ def to_8bit_signed_int(value):
         return value           # Value is already within -128 to 127
 
 
-def to_8bit_signed_binary(value):
+def to_bin(value):
 
     if value < -128 or value > 127:
         raise ValueError("Value must be within the range of an 8-bit signed integer (-128 to 127)")
@@ -83,7 +83,7 @@ def shift_right_logical(value, shamt):
     shifted = unsigned_value >> shamt
 
     # Mask again to ensure it fits within 8 bits
-    return to_8bit_signed_int(shifted & 0xFF)
+    return to_int(shifted & 0xFF)
 
 
 class RegisterFileTracker:
@@ -185,7 +185,7 @@ async def l_type(dut, rd, imm, expected_output=0):
 
     # Log details
     dut._log.info(f"Executing L-Type Instruction: LOAD {rd}, {imm}")
-    imm = to_8bit_signed_binary(imm)
+    imm = to_bin(imm)
     dut._log.info(f"Immediate: {imm}, rd: {rd_address}, Opcode: {opcode}")
 
     # Set inputs and wait
@@ -214,7 +214,7 @@ async def s_type(dut, rs1, expected_output):
     dut.uio_in.value = 0b00000000
     await Timer(1, units="us")
 
-    actual_output = to_8bit_signed_int(dut.uo_out.value)  # Convert to signed 8-bit
+    actual_output = to_int(dut.uo_out.value)  # Convert to signed 8-bit
     dut._log.info(f"Expected Output: {expected_output}, Actual Output: {actual_output}\n")
     assert actual_output == expected_output, f"Expected {expected_output}, got {actual_output}"
 
@@ -279,7 +279,7 @@ async def test_project(dut):
     await l_type(dut, "x0", 10)
     await s_type(dut, "x0", 0)
     # Test x1 to x7
-    for rd in reg_namelist:
+    for rd in reg_namelist[1:]:
         await l_type(dut, rd, 127)
         register.update(rd, 127)
         await s_type(dut, rd, register.get(rd))
@@ -295,75 +295,146 @@ async def test_project(dut):
     print("Test R-Type\n")
     print("Test AND\n")
 
-    rd = choice(reg_namelist)
+    rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
     await r_type(dut, "AND", rd, rs1, "x0")
-    register.update(rd, to_8bit_signed_int(register.get(rs1) & 0))
+    register.update(rd, to_int(register.get(rs1) & 0))
     await s_type(dut, rd, register.get(rd))
 
     await l_type(dut, "x7", -1)
     register.update("x7", -1)
-    rd = choice(reg_namelist)
+    rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
     await r_type(dut, "AND", rd, rs1, "x7")
-    register.update(rd, to_8bit_signed_int(register.get(rs1) & register.get("x7")))
+    register.update(rd, to_int(register.get(rs1) & register.get("x7")))
     await s_type(dut, rd, register.get(rd))
 
     for i in range(10):
-        rd = choice(reg_namelist)
+        rd = choice(reg_namelist[1:])
         rs1 = choice(reg_namelist)
         rs2 = choice(reg_namelist)
         await r_type(dut, "AND", rd, rs1, rs2)
-        register.update(rd, to_8bit_signed_int(register.get(rs1) & register.get(rs2)))
+        register.update(rd, to_int(register.get(rs1) & register.get(rs2)))
         await s_type(dut, rd, register.get(rd))
 
     print("Test OR\n")
 
-    rd = choice(reg_namelist)
+    rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
     await r_type(dut, "OR", rd, rs1, "x0")
-    register.update(rd, to_8bit_signed_int(register.get(rs1) | 0))
+    register.update(rd, to_int(register.get(rs1) | 0))
     await s_type(dut, rd, register.get(rd))
 
     await l_type(dut, "x7", -1)
     register.update("x7", -1)
-    rd = choice(reg_namelist)
+    rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
     await r_type(dut, "OR", rd, rs1, "x7")
-    register.update(rd, to_8bit_signed_int(register.get(rs1) | register.get("x7")))
+    register.update(rd, to_int(register.get(rs1) | register.get("x7")))
     await s_type(dut, rd, register.get(rd))
 
     for i in range(10):
-        rd = choice(reg_namelist)
+        rd = choice(reg_namelist[1:])
         rs1 = choice(reg_namelist)
         rs2 = choice(reg_namelist)
         await r_type(dut, "OR", rd, rs1, rs2)
-        register.update(rd, to_8bit_signed_int(register.get(rs1) | register.get(rs2)))
+        register.update(rd, to_int(register.get(rs1) | register.get(rs2)))
         await s_type(dut, rd, register.get(rd))
 
 
     print("Test ADD\n")
 
-    await r_type(dut, "ADD","x6", "x2", "x3")
-    register.update("x6", register.get("x2") + register.get("x3"))
-    await s_type(dut, "x6", register.get("x6"))
+    for i in range(20):
+        rd = choice(reg_namelist[1:])
+        rs1 = choice(reg_namelist)
+        rs2 = choice(reg_namelist)
+        await r_type(dut, "ADD", rd, rs1, rs2)
+        register.update(rd, to_int(register.get(rs1) + register.get(rs2)))
+        await s_type(dut, rd, register.get(rd))
+
+    # await r_type(dut, "ADD","x6", "x2", "x3")
+    # register.update("x6", register.get("x2") + register.get("x3"))
+    # await s_type(dut, "x6", register.get("x6"))
 
 
     print("Test SUB\n")
 
-    await r_type(dut, "SUB","x7", "x2", "x3")
-    register.update("x7", register.get("x2") - register.get("x3"))
-    await s_type(dut, "x7", register.get("x7"))
+    for i in range(20):
+        rd = choice(reg_namelist[1:])
+        rs1 = choice(reg_namelist)
+        rs2 = choice(reg_namelist)
+        await r_type(dut, "SUB", rd, rs1, rs2)
+        register.update(rd, to_int(register.get(rs1) - register.get(rs2)))
+        await s_type(dut, rd, register.get(rd))
+
+    # await r_type(dut, "SUB","x7", "x2", "x3")
+    # register.update("x7", register.get("x2") - register.get("x3"))
+    # await s_type(dut, "x7", register.get("x7"))
 
     print("Test XOR\n")
 
-    await r_type(dut, "XOR", "x4", "x2", "x3")
-    register.update("x4", register.get("x2") ^ register.get("x3"))
-    await s_type(dut, "x4", register.get("x4"))
-    # Test SLT
-    await r_type(dut, "SLT", "x5", "x2", "x3")
-    register.update("x5", (register.get("x2") < register.get("x3")))
-    await s_type(dut, "x5", register.get("x5"))
+    rd = choice(reg_namelist[1:])
+    rs1 = choice(reg_namelist)
+    await r_type(dut, "XOR", rd, rs1, "x0")
+    register.update(rd, to_int(register.get(rs1) ^ 0))
+    await s_type(dut, rd, register.get(rd))
+
+    await l_type(dut, "x7", -1)
+    register.update("x7", -1)
+    rd = choice(reg_namelist[1:])
+    rs1 = choice(reg_namelist)
+    await r_type(dut, "XOR", rd, rs1, "x7")
+    register.update(rd, to_int(register.get(rs1) ^ register.get("x7")))
+    await s_type(dut, rd, register.get(rd))
+
+    for i in range(10):
+        rd = choice(reg_namelist[1:])
+        rs1 = choice(reg_namelist)
+        rs2 = choice(reg_namelist)
+        await r_type(dut, "XOR", rd, rs1, rs2)
+        register.update(rd, to_int(register.get(rs1) ^ register.get(rs2)))
+        await s_type(dut, rd, register.get(rd))
+
+    # await r_type(dut, "XOR", "x4", "x2", "x3")
+    # register.update("x4", register.get("x2") ^ register.get("x3"))
+    # await s_type(dut, "x4", register.get("x4"))
+
+    print("Test SLT\n")
+
+    rd = choice(reg_namelist[1:])
+    rs1 = choice(reg_namelist)
+    await r_type(dut, "SLT", rd, rs1, "x0")
+    register.update(rd, to_int(register.get(rs1) < 0))
+    await s_type(dut, rd, register.get(rd))
+
+    await l_type(dut, "x7", 127)
+    register.update("x7", 127)
+    rd = choice(reg_namelist[1:])
+    rs1 = choice(reg_namelist)
+    await r_type(dut, "SLT", rd, rs1, "x7")
+    register.update(rd, to_int(register.get(rs1) < register.get("x7")))
+    await s_type(dut, rd, register.get(rd))
+
+    await l_type(dut, "x7", -128)
+    register.update("x7", -128)
+    rd = choice(reg_namelist[1:])
+    rs2 = choice(reg_namelist)
+    await r_type(dut, "SLT", rd,"x7", rs2)
+    register.update(rd, to_int(register.get("x7") < register.get(rs2)))
+    await s_type(dut, rd, register.get(rd))
+
+    for i in range(10):
+        rd = choice(reg_namelist[1:])
+        rs1 = choice(reg_namelist)
+        rs2 = choice(reg_namelist)
+        await r_type(dut, "SLT", rd, rs1, rs2)
+        register.update(rd, to_int(register.get(rs1) < register.get(rs2)))
+        await s_type(dut, rd, register.get(rd))
+
+    # await r_type(dut, "SLT", "x5", "x2", "x3")
+    # register.update("x5", (register.get("x2") < register.get("x3")))
+    # await s_type(dut, "x5", register.get("x5"))
+
 
     print("Test I Type\n")
     print("Test ADDI\n")
@@ -385,7 +456,7 @@ async def test_project(dut):
     await s_type(dut, "x1", register.get("x1"))
 
     await i_type(dut, "SLL", "x1", "x2", 7)
-    register.update("x1", to_8bit_signed_int((register.get("x2") << 7) & 0xFF))
+    register.update("x1", to_int((register.get("x2") << 7) & 0xFF))
     await s_type(dut, "x1", register.get("x1"))
 
     print("Test SRL\n")
