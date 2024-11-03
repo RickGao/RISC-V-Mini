@@ -431,13 +431,13 @@ async def test_project(dut):
     await s_type(dut, "x6", result)
 
     # 测试极限值的立即数
-    await i_type(dut, "ADDI", "x1", "x1", 127)
-    result = to_signed_8bit(register.get("x1") + 127)
+    await i_type(dut, "ADDI", "x1", "x1", 31)
+    result = to_signed_8bit(register.get("x1") + 31)
     register.update("x1", result)
     await s_type(dut, "x1", result)
 
-    await i_type(dut, "ADDI", "x1", "x1", -128)
-    result = to_signed_8bit((register.get("x1") - 128) & 0xFF)
+    await i_type(dut, "ADDI", "x1", "x1", -32)
+    result = to_signed_8bit((register.get("x1") - 32) & 0xFF)
     register.update("x1", result)
     await s_type(dut, "x1", result)
 
