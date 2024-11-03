@@ -288,6 +288,7 @@ async def test_project(dut):
 
     print("Test R-Type\n")
     print("Test AND\n")
+    register.print_all()
 
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
@@ -312,6 +313,7 @@ async def test_project(dut):
         await s_type(dut, rd, register.get(rd))
 
     print("Test OR\n")
+    register.print_all()
 
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
@@ -337,6 +339,7 @@ async def test_project(dut):
 
 
     print("Test ADD\n")
+    register.print_all()
 
     for i in range(20):
         rd = choice(reg_namelist[1:])
@@ -352,6 +355,7 @@ async def test_project(dut):
 
 
     print("Test SUB\n")
+    register.print_all()
 
     for i in range(20):
         rd = choice(reg_namelist[1:])
@@ -366,6 +370,7 @@ async def test_project(dut):
     # await s_type(dut, "x7", register.get("x7"))
 
     print("Test XOR\n")
+    register.print_all()
 
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
@@ -394,6 +399,7 @@ async def test_project(dut):
     # await s_type(dut, "x4", register.get("x4"))
 
     print("Test SLT\n")
+    register.print_all()
 
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
@@ -432,11 +438,13 @@ async def test_project(dut):
 
     print("Test I Type\n")
     print("Test ADDI\n")
-
     register.print_all()
 
-    for rs1 in reg_namelist:
-        await s_type(dut, rs1, register.get(rs1))
+    for rd in reg_namelist[1:]:
+        imm = randint(-128, 127)
+        await l_type(dut, rd, imm)
+        register.update(rd, imm)
+    register.print_all()
 
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
@@ -453,6 +461,7 @@ async def test_project(dut):
         await s_type(dut, rd, register.get(rd))
 
     print("Test SUBI\n")
+    register.print_all()
 
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
@@ -473,6 +482,7 @@ async def test_project(dut):
     # await s_type(dut, "x7", register.get("x7"))
 
     print("Test SLL\n")
+    register.print_all()
 
     rd = choice(reg_namelist[1:])
     rs1 = choice(reg_namelist)
@@ -499,6 +509,7 @@ async def test_project(dut):
     # await s_type(dut, "x1", register.get("x1"))
 
     print("Test SRL\n")
+    register.print_all()
 
     rs1 = choice(reg_namelist)
     rd = choice(reg_namelist[1:])
@@ -556,6 +567,7 @@ async def test_project(dut):
     # await s_type(dut, "x1", register.get("x1"))
 
     print("Test SRA\n")
+    register.print_all()
 
     rs1 = choice(reg_namelist)
     rd = choice(reg_namelist[1:])
@@ -606,6 +618,7 @@ async def test_project(dut):
 
     print("Test B-Type\n")
     print("Test BEQ\n")
+    register.print_all()
 
     await l_type(dut, "x3", 3)
     register.update("x3", 3)
@@ -617,10 +630,12 @@ async def test_project(dut):
     await b_type(dut, "BEQ", "x3", "x4", (register.get("x3") == register.get("x4")))
 
     print("Test BNE\n")
+    register.print_all()
 
     await b_type(dut, "BNE", "x3", "x5", (register.get("x3") != register.get("x5")))
 
     print("Test BLT\n")
+    register.print_all()
 
     await b_type(dut, "BLT", "x5", "x4", (register.get("x5") < register.get("x4")))
 
