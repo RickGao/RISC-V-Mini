@@ -48,7 +48,7 @@ def to_signed_8bit(value):
     """
     Convert an 8-bit unsigned integer to a signed integer in the range of -128 to 127.
     """
-    value = int(value)
+    value = int(value) & 0xFF
 
     if value > 127:
         return value - 256
@@ -437,7 +437,7 @@ async def test_project(dut):
     await s_type(dut, "x1", result)
 
     await i_type(dut, "ADDI", "x1", "x1", -128)
-    result = to_signed_8bit(register.get("x1") - 128)
+    result = to_signed_8bit((register.get("x1") - 128) & 0xFF)
     register.update("x1", result)
     await s_type(dut, "x1", result)
 
@@ -449,7 +449,7 @@ async def test_project(dut):
             await l_type(dut, "x3", 3)
             register.update("x3", 3)
             await r_type(dut, "ADD", rd, rs1, "x3")
-            result = to_signed_8bit(register.get(rs1) + register.get("x3"))
+            result = to_signed_8bit((register.get(rs1) + register.get("x3")) & 0xFF)
             register.update(rd, result)
             await s_type(dut, rd, result)
 
