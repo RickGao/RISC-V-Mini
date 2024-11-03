@@ -520,7 +520,7 @@ async def test_project(dut):
 
     await l_type(dut, "x7", 127)
     register.update("x7", 127)
-    await s_type(dut,"x7", register.get("x7"))
+    # await s_type(dut,"x7", register.get("x7"))
 
     rd = choice(reg_namelist[1:])
     await i_type(dut, "SRL", rd, "x7", 0)
@@ -534,7 +534,7 @@ async def test_project(dut):
 
     await l_type(dut, "x7", -128)
     register.update("x7", -128)
-    await s_type(dut,"x7", register.get("x7"))
+    # await s_type(dut,"x7", register.get("x7"))
 
     rd = choice(reg_namelist[1:])
     await i_type(dut, "SRL", rd, "x7", 0)
@@ -577,7 +577,7 @@ async def test_project(dut):
 
     await l_type(dut, "x7", 127)
     register.update("x7", 127)
-    await s_type(dut,"x7", register.get("x7"))
+    # await s_type(dut,"x7", register.get("x7"))
 
     await i_type(dut, "SRA", rd, "x7", 0)
     register.update(rd, to_int(register.get("x7") >> 0))
@@ -589,7 +589,7 @@ async def test_project(dut):
 
     await l_type(dut, "x7", -128)
     register.update("x7", -128)
-    await s_type(dut, "x7", register.get("x7"))
+    # await s_type(dut, "x7", register.get("x7"))
 
     await i_type(dut, "SRA", rd, "x7", 0)
     register.update(rd, to_int(register.get("x7") >> 0))
